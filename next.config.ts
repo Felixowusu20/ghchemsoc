@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /** Cloudinary SDK expects Node's `require` / streams; bundling can break uploads. */
+  serverExternalPackages: ["cloudinary"],
   images: {
     remotePatterns: [
       {
@@ -18,6 +20,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'plus.unsplash.com',
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
       },
     ],
   },

@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import "goey-toast/styles.css";
 import { AppToaster } from "@/components/app-toaster";
+import { AosProvider } from "@/components/providers/aos-provider";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -25,7 +26,7 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} font-sans antialiased`}
       >
-        {children}
+        <AosProvider>{children}</AosProvider>
         <AppToaster />
       </body>
     </html>

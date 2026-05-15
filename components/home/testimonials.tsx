@@ -80,7 +80,7 @@ export function Testimonials() {
     };
 
     return (
-        <section className="relative flex w-full flex-col items-center overflow-hidden bg-gcs-surface px-6 py-24">
+        <section className="relative flex w-full flex-col items-center overflow-hidden bg-gcs-surface px-6 py-24" data-aos="fade-up">
 
             <div className="pointer-events-none absolute left-1/2 top-0 z-0 h-[150vw] w-[150vw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gcs-border/50 bg-transparent md:h-[120vw] md:w-[120vw]"></div>
 

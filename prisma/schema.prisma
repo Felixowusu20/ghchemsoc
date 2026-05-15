@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// =======================
+// AUTH / ADMIN
+// =======================
+//
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+//
+// =======================
+// MEDIA LIBRARY (REUSABLE)
+// =======================
+//
+
+model Media {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String?
+  alt       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  heroSlides HeroSlide[]
+  aboutSections AboutSection[]
+  joinSteps JoinStep[]
+  joinHeader JoinPageHeader[]
+  newsItems NewsItem[]
+  publications Publication[]
+  societyEvents SocietyEvent[]
+  homepageExploreMainImage HomepageExploreSettings? @relation("HomepageExploreMainImage")
+  homepageExploreSecondaryImage HomepageExploreSettings? @relation("HomepageExploreSecondaryImage")
+}
+
+//
+// =======================
+// EVENTS (CONFERENCES & MEETINGS)
+// =======================
+//
+
+model SocietyEvent {
+  id        String   @id @default(cuid())
+  featured  Boolean  @default(false)
+  published Boolean  @default(true)
+  sortOrder Int      @default(0)
+
+  title     String
+  excerpt   String
+  startDate DateTime
+  endDate   DateTime?
+  timeLabel String
+  location  String
+  href      String?
+  badge     String?
+
+  mediaId String?
+  media   Media? @relation(fields: [mediaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([featured])
+  @@index([sortOrder])
+  @@index([startDate])
+}
+
+//
+// =======================
+// CONTACT PAGE (SINGLETON)
+// =======================
+//
+
+model ContactSettings {
+  id String @id @default("contact")
+
+  eyebrow  String @default("Contact")
+  headline String
+  subtext  String
+
+  /// JSON array: { "icon": "phone"|"mail"|"map"|"clock", "title", "value", "description" }
+  cards Json @default("[]")
+
+  updatedAt DateTime @updatedAt
+}
+
+/// Public contact form submissions (visible to admins in CMS).
+model ContactInquiry {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([read])
+}
+
+//
+// =======================
+// HOMEPAGE · EXPLORE / MISSION STRIP
+// =======================
+//
+
+model HomepageExploreSettings {
+  id String @id @default("homepage_explore")
+
+  missionEyebrow String
+  headlineLine1  String
+  headlineLine2  String
+
+  aboutEyebrow String
+  aboutBody    String @db.Text
+
+  imageBadge      String
+  imageHoverQuote String @db.Text
+  locationLabel   String
+
+  secondaryBadge String
+  bottomBlurb    String @db.Text
+
+  mainImageMediaId String? @unique
+  mainImageMedia   Media? @relation("HomepageExploreMainImage", fields: [mainImageMediaId], references: [id])
+
+  secondaryImageMediaId String? @unique
+  secondaryImageMedia   Media? @relation("HomepageExploreSecondaryImage", fields: [secondaryImageMediaId], references: [id])
+
+  updatedAt DateTime @updatedAt
+}
+
+//
+// =======================
+// HERO SECTION
+// =======================
+//
+
+model HeroSlide {
+  id        String  @id @default(cuid())
+  sortOrder Int     @default(0)
+  published Boolean @default(true)
+
+  mediaId   String?
+  media     Media?  @relation(fields: [mediaId], references: [id])
+
+  imageAlt  String
+
+  eyebrow       String
+  headlineLine1 String
+  headlineLine2 String
+  description   String
+
+  tags       Json @default("[]")
+  highlights Json @default("[]")
+
+  ctaLabel      String
+  ctaHref       String
+  secondaryLabel String?
+  secondaryHref  String?
+
+  statValue String?
+  statLabel String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([sortOrder])
+}
+
+//
+// =======================
+// ABOUT PAGE
+// =======================
+//
+
+model AboutSection {
+  id        String  @id @default(cuid())
+  sortOrder Int     @default(0)
+  published Boolean @default(true)
+
+  title    String
+  subtitle String?
+  body     String
+
+  layout   String @default("default")
+
+  mediaId  String?
+  media    Media? @relation(fields: [mediaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([sortOrder])
+}
+
+//
+// =======================
+// JOIN / MEMBERSHIP FLOW
+// =======================
+//
+
+model JoinStep {
+  id        String  @id @default(cuid())
+  sortOrder Int     @default(0)
+  published Boolean @default(true)
+
+  stepKey     String
+  title       String
+  description String
+
+  mediaId String?
+  media   Media? @relation(fields: [mediaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([sortOrder])
+}
+
+model JoinPageHeader {
+  id String @id @default(cuid())
+
+  key String @unique @default("join_page_header")
+
+  eyebrow  String @default("Membership")
+  title    String
+  subtitle String
+
+  mediaId String?
+  media   Media? @relation(fields: [mediaId], references: [id])
+
+  updatedAt DateTime @updatedAt
+}
+
+//
+// =======================
+// NEWS / BLOG
+// =======================
+//
+
+model NewsItem {
+  id        String  @id @default(cuid())
+  published Boolean @default(false)
+
+  slug   String @unique
+  title  String
+  excerpt String
+  body   String?
+
+  date DateTime
+
+  sortOrder Int @default(0)
+
+  mediaId String?
+  media   Media? @relation(fields: [mediaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([sortOrder])
+  @@index([date])
+}
+
+//
+// =======================
+// PUBLICATIONS
+// =======================
+//
+
+model Publication {
+  id        String  @id @default(cuid())
+  published Boolean @default(true)
+
+  title       String
+  meta        String?
+  description String
+  issue       String?
+  href        String?
+
+  sortOrder Int @default(0)
+
+  mediaId String?
+  media   Media? @relation(fields: [mediaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([sortOrder])
+}
