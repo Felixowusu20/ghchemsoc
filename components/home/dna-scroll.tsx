@@ -125,7 +125,7 @@ export function DnaScroll() {
     }, [currentFrame, images]);
 
     return (
-        <div ref={containerRef} className="relative h-[250vh] bg-white">
+        <div ref={containerRef} className="relative h-[250vh] bg-white" data-aos="fade-up">
             <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
                 {!isLoaded && (
                     <div className="absolute inset-0 flex items-center justify-center bg-white z-50">

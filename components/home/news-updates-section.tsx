@@ -54,7 +54,7 @@ const updates = [
 
 export function NewsUpdatesSection() {
     return (
-        <section className="w-full border-t border-gcs-border/60 bg-gcs-surface px-4 py-20 sm:px-6 md:px-12 md:py-24">
+        <section className="w-full border-t border-gcs-border/60 bg-gcs-surface px-4 py-20 sm:px-6 md:px-12 md:py-24" data-aos="fade-up" data-aos-delay="40">
             <div className="mx-auto max-w-[1440px]">
                 <div className="mb-12 flex flex-col items-start gap-6 sm:mb-14 md:flex-row md:items-end md:justify-between">
                     <div>

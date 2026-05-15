@@ -37,7 +37,7 @@ const facilities = [
 
 export function FacilitiesSection() {
     return (
-        <section className="w-full py-24 px-6 md:px-12 bg-[#F8F9FB] text-black">
+        <section className="w-full py-24 px-6 md:px-12 bg-[#F8F9FB] text-black" data-aos="fade-up">
             <div className="max-w-[1440px] mx-auto">
 
                 {/* Header */}

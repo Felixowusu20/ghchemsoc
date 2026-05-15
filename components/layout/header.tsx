@@ -1,12 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
     Search,
     Menu,
     ArrowUpRight,
     X,
-    FlaskConical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -89,17 +89,24 @@ export function Header() {
             >
 
                 <nav className="pointer-events-auto flex items-center gap-0.5 md:gap-1">
-                    <Link href="/" className="group mr-3 flex items-center gap-2.5 sm:mr-6">
+                    <Link href="/" className="group mr-3 flex shrink-0 items-center gap-2.5 sm:mr-6">
                         <div
-                            className={`rounded-full p-1.5 transition-colors ${
-                                showBackground ? "bg-gcs-primary" : "bg-white"
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full sm:h-12 sm:w-12 ${
+                                showBackground
+                                    ? "bg-white ring-1 ring-gcs-border/60"
+                                    : "bg-white shadow-[0_4px_20px_rgba(0,0,0,0.35)] ring-2 ring-white/45"
                             }`}
                         >
-                            <FlaskConical
-                                className={`h-5 w-5 transition-colors sm:h-6 sm:w-6 ${
-                                    showBackground ? "text-white" : "text-gcs-primary"
-                                }`}
-                            />
+                            <div className="relative h-[76%] w-[76%]">
+                                <Image
+                                    src="/logo/ghana-chemical-society-logo.png"
+                                    alt="Ghana Chemical Society logo"
+                                    fill
+                                    className="object-contain object-center"
+                                    sizes="48px"
+                                    priority
+                                />
+                            </div>
                         </div>
                         <span
                             className={`flex flex-col leading-tight transition-colors ${
@@ -187,10 +194,18 @@ export function Header() {
                             <Link
                                 href="/"
                                 onClick={() => setIsMenuOpen(false)}
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-3"
                             >
-                                <div className="rounded-full bg-gcs-primary p-1.5">
-                                    <FlaskConical className="h-6 w-6 text-white" />
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-md ring-2 ring-white/30">
+                                    <div className="relative h-[76%] w-[76%]">
+                                        <Image
+                                            src="/logo/ghana-chemical-society-logo.png"
+                                            alt="Ghana Chemical Society logo"
+                                            fill
+                                            className="object-contain object-center"
+                                            sizes="44px"
+                                        />
+                                    </div>
                                 </div>
                                 <span className="text-lg font-bold tracking-tight">GCS</span>
                             </Link>

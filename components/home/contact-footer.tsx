@@ -4,7 +4,7 @@ import { Facebook, Instagram, Twitter, Linkedin, Globe } from "lucide-react"
 
 export function ContactFooter() {
     return (
-        <footer className="w-full bg-white text-black relative pt-12 mt-12 overflow-hidden pb-12">
+        <footer className="w-full bg-white text-black relative pt-12 mt-12 overflow-hidden pb-12" data-aos="fade-up">
 
             {/* Big Text Container */}
             <div className="relative w-full max-w-[1440px] mx-auto px-4 sm:px-8 mb-24">
