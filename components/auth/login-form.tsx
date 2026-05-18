@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import {
     loadMemberProfile,
     saveMemberAuthSession,
+    saveMemberProfile,
+    type MemberProfile,
     verifyMemberCredentials,
 } from "@/lib/member-profile";
 
@@ -63,18 +65,48 @@ export function LoginForm() {
                         });
                         return;
                     }
-                    startTransition(() => {
-                        const check = verifyMemberCredentials(email, memberId);
-                        if (!check.ok) {
-                            gooeyToast.error("Could not verify member access", {
-                                description: check.message,
-                                preset: "smooth",
-                                spring: false,
-                            });
-                            return;
+                    startTransition(async () => {
+                        let profile: MemberProfile | null = null;
+
+                        const local = verifyMemberCredentials(email, memberId);
+                        if (local.ok) {
+                            profile = loadMemberProfile();
+                        } else {
+                            try {
+                                const res = await fetch("/api/public/member-login", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ email, memberId }),
+                                });
+                                const data = (await res.json()) as {
+                                    ok?: boolean;
+                                    profile?: MemberProfile;
+                                    message?: string;
+                                };
+                                if (data.ok && data.profile) {
+                                    profile = data.profile;
+                                } else {
+                                    gooeyToast.error("Could not verify member access", {
+                                        description:
+                                            data.message ??
+                                            "Check your approval email for the correct member ID.",
+                                        preset: "smooth",
+                                        spring: false,
+                                    });
+                                    return;
+                                }
+                            } catch {
+                                gooeyToast.error("Could not verify member access", {
+                                    description: "Network error. Try again in a moment.",
+                                    preset: "smooth",
+                                    spring: false,
+                                });
+                                return;
+                            }
                         }
-                        const profile = loadMemberProfile();
+
                         if (!profile) return;
+                        saveMemberProfile(profile);
                         saveMemberAuthSession(profile);
                         gooeyToast.success("Welcome back", {
                             description: "Your member portfolio is now unlocked on this device.",
@@ -190,7 +222,8 @@ export function LoginForm() {
                                     className={cn(field, "font-mono text-[13px] tracking-wide")}
                                 />
                                 <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                                    From your membership application on this device. Must match the email above.
+                                    Use the email and member ID from your approval message (after payment is verified).
+                                    Works on any device once approved.
                                 </p>
                             </div>
                         </>

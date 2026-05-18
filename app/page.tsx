@@ -5,24 +5,30 @@ import { HomeEventsRow } from "@/components/home/home-events-row";
 import { JoinWithCms } from "@/components/home/join-with-cms";
 import { NewsUpdatesSection } from "@/components/home/news-updates-section";
 import { DnaScroll } from "@/components/home/dna-scroll";
-import { FacilitiesSection } from "@/components/home/facilities-section";
+import { PartnershipsSection } from "@/components/home/partnerships-section";
 import { Testimonials } from "@/components/home/testimonials";
 import { ContactFooter } from "@/components/home/contact-footer";
-import { getPublishedSocietyEvents } from "@/lib/cms-queries";
+import { getHomepageEventsForPublic, getHomepagePartnershipsForPublic, getPublishedSocietyEvents } from "@/lib/cms-queries";
+import { getHomeNewsUpdatesData } from "@/lib/home-news-updates";
 
 export default async function Home() {
-  const events = await getPublishedSocietyEvents();
+  const [events, newsUpdates, eventsSection, partnerships] = await Promise.all([
+    getPublishedSocietyEvents(),
+    getHomeNewsUpdatesData(),
+    getHomepageEventsForPublic(),
+    getHomepagePartnershipsForPublic(),
+  ]);
 
   return (
-    <main className="min-h-screen bg-gcs-muted-bg/40">
+    <main className="min-h-screen bg-white">
       <Header />
       <HeroWithCms />
       <ExploreSection />
-      <HomeEventsRow events={events} />
+      <HomeEventsRow events={events} settings={eventsSection} />
       <JoinWithCms />
-      <NewsUpdatesSection />
+      <NewsUpdatesSection data={newsUpdates} />
       <DnaScroll />
-      <FacilitiesSection />
+      <PartnershipsSection data={partnerships} />
       <Testimonials />
       <ContactFooter />
     </main>

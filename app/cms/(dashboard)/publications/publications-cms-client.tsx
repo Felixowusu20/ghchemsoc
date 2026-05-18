@@ -1,43 +1,98 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { cmsCredentials } from "@/lib/cms-fetch";
-import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
-import { CmsImageUpload } from "@/components/cms/cms-image-upload";
+import { CmsButton, CmsCard } from "@/components/cms/cms-ui";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
+import { handleCmsResponse } from "@/lib/cms-toast";
+import { formatContactEmailsForTextarea, parseContactEmails } from "@/lib/publication-contact-emails";
+import { toLocalDateInput } from "@/lib/publication-format";
+import {
+  emptyIssueForm,
+  PublicationIssueEditor,
+  type IssueFormState,
+} from "@/components/cms/publication-issue-editor";
 
-type Row = {
+type ApiRow = {
   id: string;
   title: string;
+  journalTitle: string | null;
   meta: string | null;
   description: string;
   issue: string | null;
   href: string | null;
   published: boolean;
+  featured: boolean;
+  publishedAt: string | null;
   sortOrder: number;
   imageUrl: string;
   imagePublicId: string | null;
   imageAlt: string;
+  readerEmails: string[];
+  authorEmails: string[];
+  articles: { id: string; title: string; authors: string; pdfHref: string | null }[];
 };
 
-const empty = {
-  title: "",
-  meta: "",
-  description: "",
-  issue: "",
-  href: "",
-  sortOrder: 0,
-  published: true,
-  imageUrl: "",
-  imagePublicId: null as string | null,
-  imageAlt: "",
-};
+function rowToForm(row: ApiRow): IssueFormState {
+  return {
+    title: row.title,
+    journalTitle: row.journalTitle ?? "",
+    description: row.description,
+    meta: row.meta ?? "",
+    issue: row.issue ?? "",
+    href: row.href ?? "",
+    publishedAt: toLocalDateInput(row.publishedAt),
+    sortOrder: row.sortOrder,
+    published: row.published,
+    featured: row.featured,
+    imageUrl: row.imageUrl,
+    imagePublicId: row.imagePublicId,
+    imageAlt: row.imageAlt,
+    readerEmailsText: formatContactEmailsForTextarea(row.readerEmails),
+    authorEmailsText: formatContactEmailsForTextarea(row.authorEmails),
+    articles: row.articles.map((a) => ({
+      id: a.id,
+      title: a.title,
+      authors: a.authors,
+      pdfHref: a.pdfHref ?? "",
+    })),
+  };
+}
+
+function formPayload(form: IssueFormState) {
+  return {
+    title: form.title,
+    journalTitle: form.journalTitle || null,
+    description: form.description,
+    meta: form.meta || null,
+    issue: form.issue || null,
+    href: form.href || null,
+    published: form.published,
+    featured: form.featured,
+    publishedAt: form.publishedAt || null,
+    sortOrder: form.sortOrder,
+    imageUrl: form.imageUrl,
+    imagePublicId: form.imagePublicId,
+    imageAlt: form.imageAlt || form.title,
+    readerEmails: parseContactEmails(form.readerEmailsText),
+    authorEmails: parseContactEmails(form.authorEmailsText),
+    articles: form.articles.map((a, i) => ({
+      id: a.id,
+      title: a.title,
+      authors: a.authors,
+      pdfHref: a.pdfHref || null,
+      sortOrder: i,
+    })),
+  };
+}
 
 export function PublicationsCmsClient() {
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<ApiRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [form, setForm] = useState(empty);
+  const [form, setForm] = useState<IssueFormState>(emptyIssueForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setErr(null);
@@ -48,7 +103,7 @@ export function PublicationsCmsClient() {
       setLoading(false);
       return;
     }
-    setRows((await res.json()) as Row[]);
+    setRows((await res.json()) as ApiRow[]);
     setLoading(false);
   }, []);
 
@@ -56,41 +111,58 @@ export function PublicationsCmsClient() {
     void load();
   }, [load]);
 
-  async function create(e: React.FormEvent) {
+  function startCreate() {
+    setEditingId(null);
+    setForm(emptyIssueForm());
+  }
+
+  function startEdit(row: ApiRow) {
+    setEditingId(row.id);
+    setForm(rowToForm(row));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function save(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
     if (!form.imageUrl) {
-      setErr("Upload a cover image for this publication.");
+      setErr("Upload a journal cover image.");
       return;
     }
-    const res = await fetch("/api/cms/publications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      ...cmsCredentials,
-      body: JSON.stringify({
-        title: form.title,
-        description: form.description,
-        meta: form.meta || null,
-        issue: form.issue || null,
-        href: form.href || null,
-        published: form.published,
-        sortOrder: form.sortOrder,
-        imageUrl: form.imageUrl,
-        imagePublicId: form.imagePublicId,
-        imageAlt: form.imageAlt || form.title,
-      }),
-    });
-    if (!res.ok) setErr(await res.text());
-    else {
-      setForm(empty);
+
+    const payload = formPayload(form);
+    const res = editingId
+      ? await fetch(`/api/cms/publications/${editingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          ...cmsCredentials,
+          body: JSON.stringify(payload),
+        })
+      : await fetch("/api/cms/publications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          ...cmsCredentials,
+          body: JSON.stringify(payload),
+        });
+
+    const msg = editingId ? "Issue updated" : "Issue created";
+    if (await handleCmsResponse(res, msg, { setErr })) {
+      setEditingId(null);
+      setForm(emptyIssueForm());
       await load();
     }
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this publication?")) return;
-    await fetch(`/api/cms/publications/${id}`, { method: "DELETE", ...cmsCredentials });
-    await load();
+    if (!confirm("Delete this journal issue and all its articles?")) return;
+    const res = await fetch(`/api/cms/publications/${id}`, { method: "DELETE", ...cmsCredentials });
+    if (await handleCmsResponse(res, "Issue deleted", { setErr })) {
+      if (editingId === id) {
+        setEditingId(null);
+        setForm(emptyIssueForm());
+      }
+      await load();
+    }
   }
 
   if (loading) return <p className="text-sm text-slate-500">Loading…</p>;
@@ -100,74 +172,64 @@ export function PublicationsCmsClient() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Public site</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Publications</h1>
-        <p className="mt-2 text-sm text-slate-600">Research &amp; publications page. Cover art must be uploaded.</p>
+        <p className="mt-2 max-w-2xl text-sm text-slate-600">
+          Manage journal issues like an OJS archive: cover and published date side by side, plus a table of articles with
+          PDF links. The layout appears on <span className="font-mono text-xs">/publications</span>.
+        </p>
       </div>
       {err ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{err}</p> : null}
 
       <CmsCard className="p-8">
-        <CmsSectionTitle>Add publication</CmsSectionTitle>
-        <form className="mt-8 grid gap-5 md:grid-cols-2" onSubmit={create}>
-          <div className="md:col-span-2">
-            <CmsImageUpload
-              label="Cover image"
-              folder="publications"
-              required
-              previewUrl={form.imageUrl || null}
-              onChange={(url, publicId) => setForm((f) => ({ ...f, imageUrl: url, imagePublicId: publicId }))}
-              onClear={() => setForm((f) => ({ ...f, imageUrl: "", imagePublicId: null }))}
-            />
-          </div>
-          <label className="md:col-span-2">
-            <CmsFieldLabel>Image alt</CmsFieldLabel>
-            <CmsInput value={form.imageAlt} onChange={(e) => setForm((f) => ({ ...f, imageAlt: e.target.value }))} />
-          </label>
-          <label className="md:col-span-2">
-            <CmsFieldLabel>Title</CmsFieldLabel>
-            <CmsInput required value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-          </label>
-          <label className="md:col-span-2">
-            <CmsFieldLabel>Description</CmsFieldLabel>
-            <CmsTextarea required rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
-          </label>
-          <label>
-            <CmsFieldLabel>Meta (e.g. Quarterly · May 2026)</CmsFieldLabel>
-            <CmsInput value={form.meta} onChange={(e) => setForm((f) => ({ ...f, meta: e.target.value }))} />
-          </label>
-          <label>
-            <CmsFieldLabel>Issue</CmsFieldLabel>
-            <CmsInput value={form.issue} onChange={(e) => setForm((f) => ({ ...f, issue: e.target.value }))} />
-          </label>
-          <label className="md:col-span-2">
-            <CmsFieldLabel>External link (PDF or page)</CmsFieldLabel>
-            <CmsInput value={form.href} onChange={(e) => setForm((f) => ({ ...f, href: e.target.value }))} placeholder="https://…" />
-          </label>
-          <label>
-            <CmsFieldLabel>Sort order</CmsFieldLabel>
-            <CmsInput type="number" value={form.sortOrder} onChange={(e) => setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))} />
-          </label>
-          <label className="flex items-center gap-2 pt-7 text-sm font-medium text-slate-700">
-            <input type="checkbox" checked={form.published} onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))} />
-            Published
-          </label>
-          <div className="md:col-span-2">
-            <CmsButton type="submit">Create</CmsButton>
-          </div>
-        </form>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <CmsSectionTitle>{editingId ? "Edit issue" : "New journal issue"}</CmsSectionTitle>
+          {editingId ? (
+            <CmsButton type="button" variant="ghost" onClick={startCreate}>
+              + New instead
+            </CmsButton>
+          ) : null}
+        </div>
+        <PublicationIssueEditor
+          form={form}
+          setForm={setForm}
+          submitLabel={editingId ? "Save changes" : "Create issue"}
+          onSubmit={save}
+          onCancel={editingId ? startCreate : undefined}
+        />
       </CmsCard>
 
       <div>
-        <CmsSectionTitle>All publications</CmsSectionTitle>
-        <ul className="mt-6 space-y-3">
+        <CmsSectionTitle>All issues</CmsSectionTitle>
+        <ul className="mt-6 space-y-4">
           {rows.map((r) => (
             <li key={r.id}>
-              <CmsCard className="flex flex-col justify-between gap-3 p-5 md:flex-row md:items-center">
-                <div>
+              <CmsCard className="flex flex-col gap-4 p-5 md:flex-row md:items-center">
+                {r.imageUrl ? (
+                  <div className="relative h-28 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-200">
+                    <Image src={r.imageUrl} alt={r.imageAlt || r.title} fill className="object-cover" sizes="80px" />
+                  </div>
+                ) : null}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gcs-primary">
+                    {r.featured ? "Current issue · " : ""}
+                    {r.published ? "Live" : "Draft"} · {r.articles.length} article{r.articles.length === 1 ? "" : "s"}
+                  </p>
                   <p className="font-semibold text-slate-900">{r.title}</p>
                   <p className="line-clamp-2 text-sm text-slate-600">{r.description}</p>
+                  {(r.readerEmails.length > 0 || r.authorEmails.length > 0) && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      {r.readerEmails.length} reader · {r.authorEmails.length} author email
+                      {r.authorEmails.length === 1 ? "" : "s"}
+                    </p>
+                  )}
                 </div>
-                <CmsButton variant="danger" className="shrink-0 self-start" type="button" onClick={() => void remove(r.id)}>
-                  Delete
-                </CmsButton>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <CmsButton type="button" onClick={() => startEdit(r)}>
+                    Edit
+                  </CmsButton>
+                  <CmsButton variant="danger" type="button" onClick={() => void remove(r.id)}>
+                    Delete
+                  </CmsButton>
+                </div>
               </CmsCard>
             </li>
           ))}

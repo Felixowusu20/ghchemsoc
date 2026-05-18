@@ -2,48 +2,52 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
-import type { Publication, Media } from "@prisma/client";
+import { normalizePublicationArticles } from "@/lib/publication-format";
+import { syncPublicationArticles } from "@/lib/publications-sync-articles";
+import { serializePublicationCms, type PublicationWithRelations } from "@/lib/publications-serialize";
 
-type PubRow = Publication & { media: Media | null };
+const articleSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1),
+  authors: z.string().min(1),
+  pdfHref: z.string().nullable().optional(),
+  sortOrder: z.number().optional(),
+  published: z.boolean().optional(),
+});
 
 const createSchema = z.object({
   title: z.string().min(1),
+  journalTitle: z.string().nullable().optional(),
   description: z.string().min(1),
   meta: z.string().nullable().optional(),
   issue: z.string().nullable().optional(),
   href: z.string().nullable().optional(),
   published: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  publishedAt: z.string().nullable().optional(),
   sortOrder: z.number().optional(),
   imageUrl: z.string().url(),
   imagePublicId: z.string().nullable().optional(),
   imageAlt: z.string().optional(),
+  readerEmails: z.array(z.string().email()).optional(),
+  authorEmails: z.array(z.string().email()).optional(),
+  articles: z.array(articleSchema).optional(),
 });
 
-function serialize(r: PubRow) {
-  return {
-    id: r.id,
-    title: r.title,
-    meta: r.meta,
-    description: r.description,
-    issue: r.issue,
-    href: r.href,
-    published: r.published,
-    sortOrder: r.sortOrder,
-    mediaId: r.mediaId,
-    imageUrl: r.media?.url ?? "",
-    imagePublicId: r.media?.publicId ?? null,
-    imageAlt: r.media?.alt ?? "",
-  };
+function parsePublishedAt(value: string | null | undefined) {
+  if (!value?.trim()) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 export async function GET(request: NextRequest) {
   const denied = await assertAdmin(request);
   if (denied) return denied;
   const rows = await prisma.publication.findMany({
-    orderBy: { sortOrder: "asc" },
-    include: { media: true },
+    orderBy: [{ featured: "desc" }, { publishedAt: "desc" }, { sortOrder: "asc" }],
+    include: { media: true, articles: { orderBy: { sortOrder: "asc" } } },
   });
-  return NextResponse.json(rows.map(serialize));
+  return NextResponse.json(rows.map(serializePublicationCms));
 }
 
 export async function POST(request: NextRequest) {
@@ -60,6 +64,10 @@ export async function POST(request: NextRequest) {
   const d = parsed.data;
 
   const row = await prisma.$transaction(async (tx) => {
+    if (d.featured) {
+      await tx.publication.updateMany({ data: { featured: false }, where: { featured: true } });
+    }
+
     const m = await tx.media.create({
       data: {
         url: d.imageUrl,
@@ -67,20 +75,46 @@ export async function POST(request: NextRequest) {
         alt: d.imageAlt ?? null,
       },
     });
-    return tx.publication.create({
+
+    const pub = await tx.publication.create({
       data: {
         title: d.title,
+        journalTitle: d.journalTitle?.trim() || null,
         description: d.description,
-        meta: d.meta ?? null,
-        issue: d.issue ?? null,
-        href: d.href ?? null,
+        meta: d.meta?.trim() || null,
+        issue: d.issue?.trim() || null,
+        href: d.href?.trim() || null,
         published: d.published ?? true,
+        featured: d.featured ?? false,
+        publishedAt: parsePublishedAt(d.publishedAt ?? null),
         sortOrder: d.sortOrder ?? 0,
+        readerEmails: d.readerEmails ?? [],
+        authorEmails: d.authorEmails ?? [],
         mediaId: m.id,
       },
-      include: { media: true },
+      include: { media: true, articles: true },
+    });
+
+    const articles = normalizePublicationArticles(d.articles ?? []);
+    for (let i = 0; i < articles.length; i++) {
+      const a = articles[i];
+      await tx.publicationArticle.create({
+        data: {
+          publicationId: pub.id,
+          title: a.title,
+          authors: a.authors,
+          pdfHref: a.pdfHref,
+          sortOrder: a.sortOrder ?? i,
+          published: a.published ?? true,
+        },
+      });
+    }
+
+    return tx.publication.findUniqueOrThrow({
+      where: { id: pub.id },
+      include: { media: true, articles: { orderBy: { sortOrder: "asc" } } },
     });
   });
 
-  return NextResponse.json(serialize(row));
+  return NextResponse.json(serializePublicationCms(row as PublicationWithRelations));
 }

@@ -1,5 +1,26 @@
 import { prisma } from "../lib/prisma";
 import { HOMEPAGE_EXPLORE_DEFAULTS as HX } from "../lib/homepage-explore-defaults";
+import { HOMEPAGE_EVENTS_DEFAULTS as HE } from "../lib/homepage-events-defaults";
+import {
+  HOMEPAGE_PARTNERSHIPS_DEFAULTS as HP,
+  PARTNERSHIP_CARD_SEEDS,
+} from "../lib/homepage-partnerships-defaults";
+import { Prisma } from "@prisma/client";
+
+const DEFAULT_EVENT_REGISTRATION_FORM: Prisma.InputJsonValue = [
+  { id: "full_name", label: "Full name", type: "text", required: true },
+  { id: "email", label: "Email", type: "email", required: true },
+  { id: "phone", label: "Phone", type: "tel", required: false },
+  { id: "institution", label: "Institution / affiliation", type: "text", required: true },
+  {
+    id: "category",
+    label: "Attendee category",
+    type: "select",
+    required: true,
+    options: ["Student", "Professional", "Industry partner", "Other"],
+  },
+  { id: "notes", label: "Dietary or accessibility notes", type: "textarea", required: false },
+];
 
 async function main() {
   await prisma.heroSlide.deleteMany();
@@ -8,9 +29,14 @@ async function main() {
   await prisma.aboutSection.deleteMany();
   await prisma.joinStep.deleteMany();
   await prisma.newsItem.deleteMany();
+  await prisma.publicationArticle.deleteMany();
   await prisma.publication.deleteMany();
   await prisma.joinPageHeader.deleteMany();
   await prisma.homepageExploreSettings.deleteMany();
+  await prisma.homepageEventsSettings.deleteMany();
+  await prisma.partnershipCard.deleteMany();
+  await prisma.homepagePartnershipsSettings.deleteMany();
+  await prisma.membershipApplication.deleteMany();
   await prisma.contactSettings.deleteMany();
   await prisma.media.deleteMany();
 
@@ -35,7 +61,7 @@ async function main() {
       tags: ["Education", "Research"],
       highlights: ["National voice for chemical sciences"],
       ctaLabel: "Become a member",
-      ctaHref: "/membership",
+      ctaHref: "/login",
       statValue: "40+",
       statLabel: "Years of impact",
     },
@@ -155,18 +181,42 @@ async function main() {
     },
   });
 
-  await prisma.publication.create({
+  const pub = await prisma.publication.create({
     data: {
-      title: "Special issue: green chemistry & local materials",
-      meta: "Journal · 2026",
+      title: "Vol. 51 No. 2 (2026): J. Chem. Soc. Nigeria",
+      journalTitle: "Journal of the Chemical Society of Nigeria",
+      meta: "Quarterly",
       description:
         "Original research and reviews on sustainable synthesis, analytical methods adapted for Ghanaian contexts, and education-focused laboratory innovations.",
-      issue: "Vol. 12 · Issue 1",
-      href: "#",
+      issue: "Vol. 51 · No. 2",
+      href: null,
       published: true,
+      featured: true,
+      publishedAt: new Date("2026-04-30"),
       sortOrder: 0,
+      readerEmails: ["readers@ghanachemicalsociety.org"],
+      authorEmails: ["authors@ghanachemicalsociety.org", "editorial@ghanachemicalsociety.org"],
       mediaId: pImg.id,
     },
+  });
+
+  await prisma.publicationArticle.createMany({
+    data: [
+      {
+        publicationId: pub.id,
+        sortOrder: 0,
+        title: "POTENTIALS OF Hura crepitans (LINN) AND RUBBER SEED OILS FOR INDUSTRIAL APPLICATIONS",
+        authors: "A. Awosanya, C. O. Eromosele, A. A. Lasisi, R. N. Ugbaja",
+        pdfHref: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      },
+      {
+        publicationId: pub.id,
+        sortOrder: 1,
+        title: "Green extraction pathways for underutilised plant oils in West Africa",
+        authors: "K. Mensah, P. Osei, D. Boateng",
+        pdfHref: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      },
+    ],
   });
 
   await prisma.contactSettings.create({
@@ -201,6 +251,8 @@ async function main() {
       title: "National chemistry summit",
       excerpt:
         "Plenary talks, poster sessions, and industry panels on sustainable synthesis, teaching labs, and strengthening university–industry links.",
+      body:
+        "The National Chemistry Summit brings together educators, postgraduate researchers, and industry partners for three days of plenaries, contributed talks, and poster sessions.\n\nExpect dedicated tracks on green synthesis, analytical method development suited to local supply chains, and practical ideas for revitalising teaching laboratories. Student chapters host a networking breakfast, and the society AGM is scheduled on the final afternoon.\n\nRegistration details and the full scientific programme will be confirmed by the secretariat. Members receive priority booking and discounted rates where applicable.",
       startDate: new Date("2026-06-18T09:00:00Z"),
       endDate: new Date("2026-06-20T17:00:00Z"),
       timeLabel: "09:00 – 17:00 GMT",
@@ -208,6 +260,7 @@ async function main() {
       href: "/news/national-chemistry-summit-2026",
       badge: "Flagship",
       mediaId: evFeaturedImg.id,
+      registrationFormFields: DEFAULT_EVENT_REGISTRATION_FORM,
     },
   });
 
@@ -226,6 +279,8 @@ async function main() {
       sortOrder: 1,
       title: "Green chemistry workshop",
       excerpt: "Hands-on sessions on safer solvents, waste minimisation, and teaching demonstrations for secondary schools.",
+      body:
+        "This one-day workshop is designed for lecturers, lab coordinators, and senior secondary teachers who want to refresh practical chemistry with safer, lower-waste approaches.\n\nMorning sessions cover solvent selection, micro-scale techniques, and simple risk-reduction checklists you can take back to your own lab. After lunch, facilitators run rotating teaching demonstrations you can adapt for classrooms and outreach.\n\nPlaces are limited to keep bench work manageable. Bring a lab coat; all other materials are supplied on site.",
       startDate: new Date("2026-07-08T10:00:00Z"),
       endDate: new Date("2026-07-08T15:00:00Z"),
       timeLabel: "10:00 – 15:00 GMT",
@@ -233,7 +288,52 @@ async function main() {
       href: "#",
       badge: null,
       mediaId: evWorkshopImg.id,
+      registrationFormFields: DEFAULT_EVENT_REGISTRATION_FORM,
     },
+  });
+
+  await prisma.membershipApplication.createMany({
+    data: [
+      {
+        status: "payment_submitted",
+        fullName: "Dr. Ama Mensah",
+        email: "ama.mensah@example.edu.gh",
+        phone: "+233 24 111 2233",
+        institution: "University of Ghana",
+        jobTitle: "Senior Lecturer",
+        highestDegree: "PhD Chemistry",
+        declarationLegalName: "Mensah Ama",
+        declarationDate: "2026-05-10",
+        amountGhs: 150,
+        paymentStatus: "submitted",
+        paymentMethod: "mobile_money_mtn",
+        paystackReference: "GCS-MEM-DEMO-PENDING-001",
+        payerPhone: "0241112233",
+        paidAt: new Date("2026-05-10T14:30:00Z"),
+        read: false,
+      },
+      {
+        status: "approved",
+        fullName: "Felix Owusu",
+        email: "felixo6996@gmail.com",
+        phone: "+233 20 555 0199",
+        institution: "KNUST",
+        jobTitle: "Research Scientist",
+        highestDegree: "MSc",
+        declarationLegalName: "Owusu Felix",
+        declarationDate: "2026-04-01",
+        amountGhs: 150,
+        paymentStatus: "verified",
+        paymentMethod: "bank_transfer",
+        paystackReference: "GCS-MEM-DEMO-APPROVED-002",
+        payerPhone: "0205550199",
+        paymentNote: "TRF-DEMO-20260401",
+        paidAt: new Date("2026-04-01T09:00:00Z"),
+        memberId: "GCS-26-A1B2C3D4",
+        approvedAt: new Date("2026-04-02T11:00:00Z"),
+        read: true,
+      },
+    ],
   });
 
   await prisma.homepageExploreSettings.create({
@@ -249,6 +349,62 @@ async function main() {
       locationLabel: HX.locationLabel,
       secondaryBadge: HX.secondaryBadge,
       bottomBlurb: HX.bottomBlurb,
+    },
+  });
+
+  const eventsSpotlightImg = await prisma.media.create({
+    data: {
+      url: HE.fallbackImageUrl,
+      publicId: null,
+      alt: HE.fallbackImageAlt,
+    },
+  });
+
+  await prisma.homepagePartnershipsSettings.create({
+    data: {
+      id: "homepage_partnerships",
+      eyebrow: HP.eyebrow,
+      title: HP.title,
+      searchPlaceholder: HP.searchPlaceholder,
+      showSearch: HP.showSearch,
+      ctaLabel: HP.ctaLabel,
+      ctaHref: HP.ctaHref,
+      footerNote: HP.footerNote,
+    },
+  });
+
+  for (const card of PARTNERSHIP_CARD_SEEDS) {
+    const img = await prisma.media.create({
+      data: { url: card.imageUrl, publicId: null, alt: card.imageAlt },
+    });
+    await prisma.partnershipCard.create({
+      data: {
+        sortOrder: card.sortOrder,
+        tag: card.tag,
+        title: card.title,
+        accentPill: card.accentPill,
+        href: card.href,
+        published: true,
+        mediaId: img.id,
+      },
+    });
+  }
+
+  await prisma.homepageEventsSettings.create({
+    data: {
+      id: "homepage_events",
+      spotlightEnabled: HE.spotlightEnabled,
+      sectionEyebrow: HE.sectionEyebrow,
+      sectionTitle: HE.sectionTitle,
+      spotlightEyebrow: HE.spotlightEyebrow,
+      headline: HE.headline,
+      body: HE.body,
+      metaLine: HE.metaLine,
+      imagePosition: HE.imagePosition,
+      ctaLabel: HE.ctaLabel,
+      ctaHref: HE.ctaHref,
+      imageBadge: HE.imageBadge,
+      imageMediaId: eventsSpotlightImg.id,
     },
   });
 

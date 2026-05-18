@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-/* Ghana Chemical Society (GCS) design tokens */
+/* Ghana Chemical Society (GCS) design tokens — light, editorial white base */
 :root {
-  --background: #f8fafc;
+  --background: #ffffff;
   --foreground: #0f172a;
   --gcs-primary: #1d4ed8;
   --gcs-primary-hover: #1e40af;
@@ -10,10 +10,11 @@
   --gcs-secondary-hover: #0284c7;
   --gcs-accent: #38bdf8;
   --gcs-surface: #ffffff;
-  --gcs-muted-bg: #eff6ff;
-  --gcs-muted-text: #475569;
+  /* Near-white for subtle chips / input fills only — pages stay white */
+  --gcs-muted-bg: #fafafa;
+  --gcs-muted-text: #64748b;
   --gcs-foreground-rich: #0f172a;
-  --gcs-border: #cbd5e1;
+  --gcs-border: #e5e7eb;
 }
 
 @theme inline {
@@ -32,13 +33,6 @@
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #e2e8f0;
-  }
-}
-
 @layer utilities {
   .animate-float {
     animation: float 6s ease-in-out infinite;
@@ -49,12 +43,98 @@
   .perspective-1000 {
     perspective: 1000px;
   }
+
+  .gcs-page-title {
+    font-size: clamp(1.875rem, 4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: var(--gcs-foreground-rich);
+  }
+
+  .gcs-section-title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--gcs-foreground-rich);
+  }
+
+  .gcs-topic-title {
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    color: var(--gcs-foreground-rich);
+  }
+
+  .gcs-topic-accent {
+    border-left: 4px solid var(--gcs-primary);
+    padding-left: 1.25rem;
+  }
+
+  .gcs-lead {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--gcs-muted-text);
+  }
+
+  @media (min-width: 768px) {
+    .gcs-lead {
+      font-size: 1.125rem;
+    }
+  }
+
+  .gcs-body {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--gcs-muted-text);
+  }
 }
 
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-20px); }
   100% { transform: translateY(0px); }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* Slightly larger base (~17px) for readability site-wide */
+    font-size: 106.25%;
+  }
+
+  body {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--gcs-foreground-rich);
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    font-size: clamp(1.875rem, 4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    font-weight: 700;
+    line-height: 1.25;
+  }
 }
 
 body {

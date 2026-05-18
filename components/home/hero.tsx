@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { PublicHeroSlide } from "@/lib/fetch-public-hero";
 import { FALLBACK_HERO_SLIDES, type HeroCarouselSlide } from "@/lib/hero-carousel-data";
 import { mapPublicHeroToCarousel } from "@/lib/map-public-hero";
+import { MEMBER_LOGIN_PATH } from "@/lib/member-login";
 
 const CAROUSEL_INTERVAL_MS = 7000;
 
@@ -137,7 +138,7 @@ export function Hero({ cmsSlides }: HeroProps) {
 
         <div className="relative z-30 mb-16 md:mb-12">
           <Link
-            href="/membership"
+            href={MEMBER_LOGIN_PATH}
             className="group inline-flex animate-float items-center gap-3 rounded-full bg-white p-1.5 pl-6 pr-1.5 shadow-[0_20px_40px_-5px_rgba(15,23,42,0.45)] transition-transform hover:scale-[1.01] md:gap-4 md:p-2 md:pl-8 md:pr-2"
           >
             <span className="text-lg font-semibold tracking-tight text-slate-900 md:text-xl">
@@ -179,7 +180,7 @@ export function Hero({ cmsSlides }: HeroProps) {
                 <motion.button
                   type="button"
                   onClick={() => setSocialOpen(false)}
-                  className="mb-1 rounded-full bg-white p-2 shadow-md transition-colors hover:bg-slate-100"
+                  className="mb-1 rounded-full bg-white p-2 shadow-md transition-colors hover:bg-neutral-50"
                   whileHover={{ rotate: 90 }}
                 >
                   <X className="h-4 w-4 text-gcs-foreground" />

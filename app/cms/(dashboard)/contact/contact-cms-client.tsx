@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { cmsCredentials } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
+import { handleCmsResponse } from "@/lib/cms-toast";
 
 type Card = { icon: "phone" | "mail" | "map" | "clock"; title: string; value: string; description: string };
 
@@ -47,8 +48,7 @@ export function ContactCmsClient() {
       ...cmsCredentials,
       body: JSON.stringify({ eyebrow, headline, subtext, cards }),
     });
-    if (!res.ok) setErr(await res.text());
-    else setSaved(true);
+    if (await handleCmsResponse(res, "Contact page saved", { setErr })) setSaved(true);
   }
 
   if (loading) {

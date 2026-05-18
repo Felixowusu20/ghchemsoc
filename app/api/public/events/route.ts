@@ -9,6 +9,7 @@ export async function GET() {
       featured: r.featured,
       title: r.title,
       excerpt: r.excerpt,
+      body: r.body,
       startDate: r.startDate.toISOString(),
       endDate: r.endDate?.toISOString() ?? null,
       timeLabel: r.timeLabel,
@@ -16,6 +17,7 @@ export async function GET() {
       href: r.href,
       badge: r.badge,
       sortOrder: r.sortOrder,
+      registrationFormFields: r.registrationFormFields,
       imageUrl: r.media?.url ?? null,
       imageAlt: r.media?.alt ?? null,
     }))

@@ -12,32 +12,78 @@ export type MemberPayment = {
 
 export type MemberProfile = {
     memberId: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     email: string;
     phone: string;
     institution: string;
-    role: string;
-    department: string;
-    city: string;
-    region: string;
-    membershipType: string;
+    jobTitle: string;
     highestDegree: string;
-    fieldOfStudy: string;
-    motivation: string;
+    declarationLegalName: string;
+    declarationDate: string;
     registeredAt: string;
+    /** Cloudinary URL when photo hosting is configured */
+    photoUrl?: string;
+    photoPublicId?: string;
+    /** Local data URL fallback when Cloudinary is not configured */
     avatarDataUrl?: string;
     payments: MemberPayment[];
 };
+
+/** Stored profiles from older form versions */
+type LegacyMemberProfile = MemberProfile & {
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+    department?: string;
+    city?: string;
+    region?: string;
+    membershipType?: string;
+    fieldOfStudy?: string;
+    motivation?: string;
+    avatarDataUrl?: string;
+};
+
+export function memberDisplayName(profile: LegacyMemberProfile): string {
+    if (profile.fullName?.trim()) return profile.fullName.trim();
+    const legacy = [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim();
+    return legacy || "Member";
+}
+
+export function memberInitials(profile: LegacyMemberProfile): string {
+    const name = memberDisplayName(profile);
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "G";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
+}
+
+export function memberJobTitle(profile: LegacyMemberProfile): string {
+    return profile.jobTitle?.trim() || profile.role?.trim() || "";
+}
+
+export function memberPhotoSrc(profile: LegacyMemberProfile): string | null {
+    if (profile.photoUrl?.trim()) return profile.photoUrl.trim();
+    if (profile.avatarDataUrl?.trim()) return profile.avatarDataUrl.trim();
+    return null;
+}
+
+export function formatDeclarationDate(isoDate: string): string {
+    if (!isoDate) return "—";
+    try {
+        return new Intl.DateTimeFormat("en-GB", { dateStyle: "long" }).format(new Date(isoDate));
+    } catch {
+        return isoDate;
+    }
+}
 
 export function loadMemberProfile(): MemberProfile | null {
     if (typeof window === "undefined") return null;
     try {
         const raw = window.localStorage.getItem(GCS_MEMBER_STORAGE_KEY);
         if (!raw) return null;
-        const parsed = JSON.parse(raw) as MemberProfile;
+        const parsed = JSON.parse(raw) as LegacyMemberProfile;
         if (!parsed?.memberId || !parsed?.email) return null;
-        return parsed;
+        return parsed as MemberProfile;
     } catch {
         return null;
     }
@@ -132,35 +178,4 @@ export function clearMemberProfile() {
     if (typeof window === "undefined") return;
     window.localStorage.removeItem(GCS_MEMBER_STORAGE_KEY);
     clearMemberAuthSession();
-}
-
-export function membershipTypeLabel(value: string): string {
-    const map: Record<string, string> = {
-        student: "Student",
-        early_career: "Early career",
-        professional: "Professional",
-        corporate: "Corporate / institutional",
-    };
-    return map[value] ?? value.replace(/_/g, " ");
-}
-
-export function readImageAsDataUrl(file: File, maxBytes = 480_000): Promise<string> {
-    return new Promise((resolve, reject) => {
-        if (!file.type.startsWith("image/")) {
-            reject(new Error("Use a JPEG, PNG, or WebP image."));
-            return;
-        }
-        if (file.size > maxBytes) {
-            reject(new Error(`Please choose an image under ${Math.round(maxBytes / 1000)} KB.`));
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => {
-            const r = reader.result;
-            if (typeof r === "string") resolve(r);
-            else reject(new Error("Could not read the image."));
-        };
-        reader.onerror = () => reject(new Error("Could not read the image."));
-        reader.readAsDataURL(file);
-    });
 }

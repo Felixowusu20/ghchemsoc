@@ -64,7 +64,7 @@ export function JoinSection({ cms }: Props) {
   const heroAlt = cms?.heroAlt ?? "Chemists and laboratory research";
 
   return (
-    <section className="w-full border-t border-gcs-border/60 bg-gradient-to-b from-gcs-muted-bg/90 via-gcs-surface to-gcs-surface px-4 py-20 sm:px-6 md:px-12 md:py-24">
+    <section className="w-full border-t border-gcs-border/60 bg-white px-4 py-20 sm:px-6 md:px-12 md:py-24">
       <div className="mx-auto max-w-[1440px]">
         <div className="mb-12 flex flex-col items-center text-center md:mb-14">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gcs-border bg-gcs-surface px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
@@ -119,7 +119,7 @@ export function JoinSection({ cms }: Props) {
                 i === 3 ? "md:col-span-1 xl:col-span-6 xl:row-start-3 xl:col-start-7" : "",
               ].join(" ")}
             >
-              <div className="pointer-events-none absolute -right-6 -top-4 select-none text-7xl font-extralight leading-none tracking-tighter text-gcs-muted-bg sm:text-8xl">
+              <div className="pointer-events-none absolute -right-6 -top-4 select-none text-7xl font-extralight leading-none tracking-tighter text-neutral-100 sm:text-8xl">
                 {step.k}
               </div>
               <div>
@@ -137,7 +137,7 @@ export function JoinSection({ cms }: Props) {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="flex flex-col items-stretch justify-between gap-6 rounded-[1.75rem] border border-gcs-border/50 bg-gradient-to-r from-gcs-muted-bg/40 via-gcs-surface to-gcs-muted-bg/30 px-6 py-8 ring-1 ring-gcs-border/30 sm:flex-row sm:items-center sm:px-8 md:rounded-[2rem] md:py-10"
+          className="flex flex-col items-stretch justify-between gap-6 rounded-[1.75rem] border border-gcs-border/50 bg-white px-6 py-8 shadow-sm ring-1 ring-gcs-border/20 sm:flex-row sm:items-center sm:px-8 md:rounded-[2rem] md:py-10"
         >
           <div className="text-center sm:text-left">
             <p className="text-sm font-medium text-gcs-foreground md:text-base">Ready when you are.</p>

@@ -47,6 +47,50 @@ model Media {
   societyEvents SocietyEvent[]
   homepageExploreMainImage HomepageExploreSettings? @relation("HomepageExploreMainImage")
   homepageExploreSecondaryImage HomepageExploreSettings? @relation("HomepageExploreSecondaryImage")
+  homepageEventsSpotlightImage HomepageEventsSettings? @relation("HomepageEventsSpotlightImage")
+  partnershipCards PartnershipCard[]
+  siteFooterLeftImage SiteFooterSettings? @relation("SiteFooterLeftImage")
+  siteFooterRightImage SiteFooterSettings? @relation("SiteFooterRightImage")
+}
+
+//
+// =======================
+// HOMEPAGE · PARTNERSHIPS
+// =======================
+//
+
+model HomepagePartnershipsSettings {
+  id String @id @default("homepage_partnerships")
+
+  eyebrow            String  @default("Partnerships")
+  title              String  @default("Our partners")
+  searchPlaceholder  String  @default("Search partners…")
+  showSearch         Boolean @default(true)
+  ctaLabel           String  @default("View all")
+  ctaHref            String  @default("/contact")
+  footerNote         String? @db.Text
+
+  updatedAt DateTime @updatedAt
+}
+
+model PartnershipCard {
+  id        String  @id @default(cuid())
+  published Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  tag        String
+  title      String
+  accentPill String?
+  href       String?
+
+  mediaId String?
+  media   Media? @relation(fields: [mediaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([sortOrder])
 }
 
 //
@@ -63,6 +107,8 @@ model SocietyEvent {
 
   title     String
   excerpt   String
+  /// Optional longer copy for the public event detail page (/events/[id]).
+  body      String?
   startDate DateTime
   endDate   DateTime?
   timeLabel String
@@ -70,8 +116,13 @@ model SocietyEvent {
   href      String?
   badge     String?
 
+  /// JSON array of field definitions for the public registration modal (see lib/event-registration-form.ts).
+  registrationFormFields Json?
+
   mediaId String?
   media   Media? @relation(fields: [mediaId], references: [id])
+
+  registrations EventRegistration[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -80,6 +131,22 @@ model SocietyEvent {
   @@index([featured])
   @@index([sortOrder])
   @@index([startDate])
+}
+
+model EventRegistration {
+  id          String   @id @default(cuid())
+  eventId     String
+  event       SocietyEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  /// Answers keyed by field `id` from registrationFormFields.
+  responses   Json
+  /// Short line for inbox lists (e.g. name · email).
+  summaryLine String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([eventId])
+  @@index([createdAt])
+  @@index([read])
 }
 
 //
@@ -118,6 +185,42 @@ model ContactInquiry {
 
 //
 // =======================
+// SITE FOOTER (SINGLETON)
+// =======================
+//
+
+model SiteFooterSettings {
+  id String @id @default("site_footer")
+
+  headlineLine1 String
+  headlineLine2 String
+  helplineText  String
+  description   String @db.Text
+  copyrightText String
+
+  /// Link label for trademark / legal (e.g. "Trademark policy").
+  trademarkLabel String @default("Trademark & legal")
+  /// URL for trademark page or PDF.
+  trademarkHref  String @default("/contact")
+  /// Optional line under copyright (® notice, etc.).
+  trademarkNotice String? @db.Text
+
+  /// JSON: [{ "label", "href" }]
+  navLinks Json @default("[]")
+  /// JSON: [{ "platform": "linkedin"|…, "href", "label"? }]
+  socialLinks Json @default("[]")
+
+  leftImageMediaId String? @unique
+  leftImageMedia   Media?  @relation("SiteFooterLeftImage", fields: [leftImageMediaId], references: [id])
+
+  rightImageMediaId String? @unique
+  rightImageMedia   Media?  @relation("SiteFooterRightImage", fields: [rightImageMediaId], references: [id])
+
+  updatedAt DateTime @updatedAt
+}
+
+//
+// =======================
 // HOMEPAGE · EXPLORE / MISSION STRIP
 // =======================
 //
@@ -144,6 +247,40 @@ model HomepageExploreSettings {
 
   secondaryImageMediaId String? @unique
   secondaryImageMedia   Media? @relation("HomepageExploreSecondaryImage", fields: [secondaryImageMediaId], references: [id])
+
+  updatedAt DateTime @updatedAt
+}
+
+//
+// =======================
+// HOMEPAGE · EVENTS STRIP
+// =======================
+//
+
+model HomepageEventsSettings {
+  id String @id @default("homepage_events")
+
+  /// Show the spotlight block on the homepage.
+  spotlightEnabled Boolean @default(true)
+
+  sectionEyebrow String @default("Upcoming")
+  sectionTitle   String @default("Conferences & events")
+
+  spotlightEyebrow String
+  headline         String
+  body             String @db.Text
+  metaLine         String?
+
+  /// "left" | "right" — image column on large screens.
+  imagePosition String @default("left")
+
+  ctaLabel String
+  ctaHref  String
+
+  imageBadge String?
+
+  imageMediaId String? @unique
+  imageMedia   Media? @relation("HomepageEventsSpotlightImage", fields: [imageMediaId], references: [id])
 
   updatedAt DateTime @updatedAt
 }
@@ -293,21 +430,126 @@ model NewsItem {
 model Publication {
   id        String  @id @default(cuid())
   published Boolean @default(true)
+  /// Highlight as the current issue on /publications.
+  featured  Boolean @default(false)
 
+  /// Full issue heading, e.g. "Vol. 51 No. 2 (2026): J. Chem. Soc. Nigeria".
   title       String
+  /// Short journal name shown under the title.
+  journalTitle String?
   meta        String?
-  description String
+  description String  @db.Text
   issue       String?
   href        String?
 
+  publishedAt DateTime?
+
   sortOrder Int @default(0)
+
+  /// Correspondence emails for readers (managed in CMS; not shown as public nav links).
+  readerEmails Json @default("[]")
+  /// Correspondence emails for authors (managed in CMS).
+  authorEmails Json @default("[]")
 
   mediaId String?
   media   Media? @relation(fields: [mediaId], references: [id])
+
+  articles PublicationArticle[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([published])
+  @@index([featured])
   @@index([sortOrder])
+  @@index([publishedAt])
+}
+
+model PublicationArticle {
+  id            String @id @default(cuid())
+  publicationId String
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+
+  published Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  title   String
+  authors String
+  pdfHref String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([publicationId])
+  @@index([sortOrder])
+}
+
+//
+// =======================
+// MEMBERSHIP APPLICATIONS & PAYMENTS
+// =======================
+//
+
+enum MembershipApplicationStatus {
+  pending_payment
+  payment_submitted
+  approved
+  rejected
+}
+
+enum MembershipPaymentStatus {
+  pending
+  submitted
+  verified
+  failed
+}
+
+enum MembershipPaymentMethod {
+  mobile_money_mtn
+  mobile_money_telecel
+  mobile_money_airteltigo
+  bank_transfer
+  debit_credit_card
+  ussd
+}
+
+model MembershipApplication {
+  id     String                      @id @default(cuid())
+  status MembershipApplicationStatus @default(pending_payment)
+
+  fullName             String
+  email                String
+  phone                String?
+  institution          String
+  jobTitle             String?
+  highestDegree        String?
+  declarationLegalName String
+  declarationDate      String
+
+  photoUrl      String?
+  photoPublicId String?
+
+  amountGhs         Int                     @default(150)
+  paymentStatus     MembershipPaymentStatus @default(pending)
+  paymentMethod     MembershipPaymentMethod?
+  paystackReference String?
+  payerPhone        String?
+  paymentNote       String?
+  paidAt            DateTime?
+
+  memberId   String? @unique
+  approvedAt DateTime?
+  rejectedAt DateTime?
+  adminNote  String? @db.Text
+
+  read Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([read])
+  @@index([createdAt])
+  @@index([email])
 }

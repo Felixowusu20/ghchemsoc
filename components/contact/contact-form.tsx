@@ -63,7 +63,7 @@ export function ContactForm() {
           <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gcs-muted-text">First name</label>
           <Input
             required
-            className="h-12 rounded-xl border-gcs-border bg-gcs-muted-bg/30"
+            className="h-12 rounded-xl border-gcs-border bg-white shadow-sm"
             placeholder="Ama"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
@@ -74,7 +74,7 @@ export function ContactForm() {
           <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gcs-muted-text">Last name</label>
           <Input
             required
-            className="h-12 rounded-xl border-gcs-border bg-gcs-muted-bg/30"
+            className="h-12 rounded-xl border-gcs-border bg-white shadow-sm"
             placeholder="Mensah"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
@@ -87,7 +87,7 @@ export function ContactForm() {
         <Input
           required
           type="email"
-          className="h-12 rounded-xl border-gcs-border bg-gcs-muted-bg/30"
+          className="h-12 rounded-xl border-gcs-border bg-white shadow-sm"
           placeholder="you@institution.edu.gh"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -98,7 +98,7 @@ export function ContactForm() {
         <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gcs-muted-text">Phone (optional)</label>
         <Input
           type="tel"
-          className="h-12 rounded-xl border-gcs-border bg-gcs-muted-bg/30"
+          className="h-12 rounded-xl border-gcs-border bg-white shadow-sm"
           placeholder="+233 …"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
@@ -112,7 +112,7 @@ export function ContactForm() {
           minLength={10}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[140px] w-full resize-none rounded-xl border border-gcs-border bg-gcs-muted-bg/30 px-3 py-3 text-sm outline-none ring-gcs-primary/20 focus:border-gcs-primary focus:ring-2"
+          className="min-h-[140px] w-full resize-none rounded-xl border border-gcs-border bg-white px-3 py-3 text-sm shadow-sm outline-none ring-gcs-primary/20 focus:border-gcs-primary focus:ring-2"
           placeholder="How can we help?"
         />
       </div>
