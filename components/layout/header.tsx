@@ -43,7 +43,10 @@ export function Header() {
     const isLightPage = LIGHT_HEADER_PATHS.some(
         (p) => pathname === p || pathname.startsWith(`${p}/`)
     );
-    const showBackground = scrolled || isLightPage;
+    /** Light pages + scrolled hero: solid bar and dark-on-light nav (not white-on-white). */
+    const useReadableChrome = isLightPage || scrolled;
+    const pillOnHero = !useReadableChrome;
+    const solidHeaderBar = useReadableChrome;
 
     useEffect(() => {
         if (isMenuOpen) {
@@ -73,18 +76,29 @@ export function Header() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    const pillOnHero = !showBackground;
+    function navLinkClass(href: string) {
+        const active = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+        if (pillOnHero) {
+            return active
+                ? "rounded-full border border-white/55 bg-white/22 px-3 py-2 text-sm font-semibold capitalize text-white shadow-sm backdrop-blur-md xl:px-4"
+                : "rounded-full border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium capitalize text-white/90 backdrop-blur-md transition-all hover:border-white/35 hover:bg-white/18 xl:px-4";
+        }
+        return active
+            ? "rounded-full border border-gcs-primary/40 bg-gcs-primary/10 px-3 py-2 text-sm font-semibold capitalize text-gcs-primary shadow-md ring-1 ring-gcs-primary/15 xl:px-4"
+            : "rounded-full border border-gcs-border bg-neutral-50/95 px-3 py-2 text-sm font-medium capitalize text-gcs-foreground shadow-sm transition-all hover:border-gcs-primary/30 hover:bg-white hover:shadow-md xl:px-4";
+    }
+
     const pillClass = pillOnHero
         ? "border-white/25 bg-white/12 text-white backdrop-blur-md hover:bg-white/20"
-        : "border-gcs-border/80 bg-slate-100/90 text-gcs-foreground hover:bg-slate-200/90";
+        : "border-gcs-border bg-neutral-50/95 text-gcs-foreground shadow-md backdrop-blur-sm hover:border-gcs-primary/25 hover:bg-white";
 
     return (
         <>
             <header
-                className={`fixed top-0 left-0 right-0 z-50 flex items-start justify-between px-4 py-4 transition-all duration-300 sm:px-6 ${
-                    scrolled
-                        ? "border-b border-gcs-border/70 bg-white/85 pt-4 backdrop-blur-lg"
-                        : "pt-6"
+                className={`fixed top-0 left-0 right-0 z-50 flex items-start justify-between px-4 py-4 pt-6 transition-all duration-300 sm:px-6 ${
+                    solidHeaderBar
+                        ? "border-b border-gcs-border/80 bg-white/95 shadow-[0_4px_24px_-6px_rgba(15,23,42,0.12)] backdrop-blur-md"
+                        : "bg-transparent"
                 } ${!scrolled && !isLightPage ? "pointer-events-none" : ""}`}
             >
 
@@ -92,7 +106,7 @@ export function Header() {
                     <Link href="/" className="group mr-3 flex shrink-0 items-center gap-2.5 sm:mr-6">
                         <div
                             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full sm:h-12 sm:w-12 ${
-                                showBackground
+                                useReadableChrome
                                     ? "bg-white ring-1 ring-gcs-border/60"
                                     : "bg-white shadow-[0_4px_20px_rgba(0,0,0,0.35)] ring-2 ring-white/45"
                             }`}
@@ -110,7 +124,7 @@ export function Header() {
                         </div>
                         <span
                             className={`flex flex-col leading-tight transition-colors ${
-                                showBackground ? "text-gcs-foreground" : "text-white drop-shadow-md"
+                                useReadableChrome ? "text-gcs-foreground" : "text-white drop-shadow-md"
                             }`}
                         >
                             <span className="text-base font-bold tracking-tight sm:text-xl">GCS</span>
@@ -120,12 +134,12 @@ export function Header() {
                         </span>
                     </Link>
 
-                    <div className="hidden items-center gap-1 lg:flex">
+                    <div className="hidden items-center gap-1.5 lg:flex">
                         {NAV.map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`rounded-full border px-3 py-2 text-sm font-medium capitalize transition-all xl:px-4 ${pillClass}`}
+                                className={navLinkClass(item.href)}
                             >
                                 {item.label}
                             </Link>
@@ -143,7 +157,7 @@ export function Header() {
                         <span className="text-sm font-medium">Search…</span>
                         <kbd
                             className={`hidden items-center gap-0.5 rounded px-2 py-1 font-mono text-xs xl:inline-flex ${
-                                pillOnHero ? "bg-white/20" : "bg-slate-200/90"
+                                pillOnHero ? "bg-white/20" : "border border-gcs-border/60 bg-white text-gcs-muted-text"
                             }`}
                         >
                             ⌘K

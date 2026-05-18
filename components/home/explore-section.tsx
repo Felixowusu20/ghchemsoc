@@ -13,7 +13,7 @@ export async function ExploreSection() {
       data-aos="fade-up"
     >
       <div className="mb-14 flex flex-col items-center text-center md:mb-16" data-aos="fade-up" data-aos-delay="80">
-        <div className="mb-6 inline-flex cursor-default items-center gap-2 rounded-full border border-gcs-border bg-gcs-muted-bg/50 px-4 py-1.5 text-sm font-medium text-gcs-muted-text transition-colors">
+        <div className="mb-6 inline-flex cursor-default items-center gap-2 rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm transition-colors">
           {s.missionEyebrow} <ArrowRight className="h-3.5 w-3.5 text-gcs-primary" />
         </div>
         <h2 className="mx-auto max-w-4xl text-4xl font-medium leading-[1.1] tracking-tight md:text-5xl lg:text-[2.75rem] lg:leading-[1.08]">
@@ -24,7 +24,7 @@ export async function ExploreSection() {
 
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
         <div className="flex flex-col justify-start pt-1 lg:col-span-3" data-aos="fade-up" data-aos-delay="100">
-          <div className="mb-6 inline-block self-start rounded-full border border-gcs-border bg-gcs-muted-bg/40 px-4 py-1.5 text-sm font-medium text-gcs-muted-text">
+          <div className="mb-6 inline-block self-start rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
             {s.aboutEyebrow}
           </div>
           <p className="mb-8 text-xl font-medium leading-relaxed text-gcs-foreground md:text-2xl">{s.aboutBody}</p>
@@ -66,7 +66,7 @@ export async function ExploreSection() {
 
           <Link
             href="/about"
-            className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white text-gcs-foreground shadow-md transition-colors hover:bg-gcs-muted-bg"
+            className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white text-gcs-foreground shadow-md transition-colors hover:bg-neutral-50"
             aria-label="About the society"
           >
             <ArrowUpRight className="h-5 w-5" />
@@ -88,7 +88,7 @@ export async function ExploreSection() {
             </div>
             <Link
               href="/events"
-              className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white text-gcs-foreground shadow-md transition-colors hover:bg-gcs-muted-bg"
+              className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-white text-gcs-foreground shadow-md transition-colors hover:bg-neutral-50"
               aria-label="Conferences and events"
             >
               <ArrowUpRight className="h-5 w-5" />

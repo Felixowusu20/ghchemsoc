@@ -5,6 +5,8 @@ import { cmsCredentials } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard } from "@/components/cms/cms-ui";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
 import { Mail } from "lucide-react";
+import { handleCmsResponse } from "@/lib/cms-toast";
+import { refreshCmsNotifications } from "@/components/cms/cms-nav-badges";
 
 type Row = {
   id: string;
@@ -49,7 +51,10 @@ export function InquiriesCmsClient() {
       ...cmsCredentials,
       body: JSON.stringify({ read }),
     });
-    if (res.ok) await load();
+    if (await handleCmsResponse(res, "Message updated", {})) {
+      await load();
+      refreshCmsNotifications();
+    }
   }
 
   if (loading) return <p className="text-sm text-slate-500">Loading…</p>;

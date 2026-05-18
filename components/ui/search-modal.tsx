@@ -189,37 +189,37 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         className="fixed top-4 md:top-[10%] left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl z-[101] bg-white rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
                     >
                         {/* Search Input */}
-                        <div className="p-4 md:p-6 border-b border-gray-100">
+                        <div className="p-4 md:p-6 border-b border-neutral-100">
                             <div className="relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gcs-muted-text" />
                                 <Input
                                     ref={inputRef}
                                     type="text"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="Search programs, pages, and resources…"
-                                    className="h-14 w-full rounded-xl border-slate-200 bg-gray-50 pl-12 pr-12 text-base text-slate-900 placeholder:text-slate-500 focus:border-gcs-primary focus:bg-white focus-visible:ring-gcs-primary/25 md:text-lg"
+                                    className="h-14 w-full rounded-xl border-gcs-border bg-white pl-12 pr-12 text-base text-gcs-foreground placeholder:text-gcs-muted-text focus:border-gcs-primary focus:bg-white focus-visible:ring-gcs-primary/25 md:text-lg shadow-sm"
                                 />
                                 {query && (
                                     <button
                                         onClick={() => setQuery("")}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center transition-colors"
                                     >
-                                        <X className="h-4 w-4 text-slate-600" />
+                                        <X className="h-4 w-4 text-gcs-muted-text" />
                                     </button>
                                 )}
                             </div>
 
                             {/* Keyboard hints - Desktop only */}
-                            <div className="hidden md:flex items-center gap-4 mt-3 text-xs text-slate-500">
+                            <div className="hidden md:flex items-center gap-4 mt-3 text-xs text-gcs-muted-text">
                                 <span className="flex items-center gap-1">
-                                    <kbd className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-700">↑↓</kbd> Navigate
+                                    <kbd className="rounded border border-neutral-200 bg-white px-1.5 py-0.5 font-mono text-gcs-foreground shadow-sm">↑↓</kbd> Navigate
                                 </span>
                                 <span className="flex items-center gap-1">
-                                    <kbd className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-700">Enter</kbd> Select
+                                    <kbd className="rounded border border-neutral-200 bg-white px-1.5 py-0.5 font-mono text-gcs-foreground shadow-sm">Enter</kbd> Select
                                 </span>
                                 <span className="flex items-center gap-1">
-                                    <kbd className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-700">Esc</kbd> Close
+                                    <kbd className="rounded border border-neutral-200 bg-white px-1.5 py-0.5 font-mono text-gcs-foreground shadow-sm">Esc</kbd> Close
                                 </span>
                             </div>
                         </div>
@@ -231,7 +231,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                     <div className="space-y-6">
                                         {Object.entries(groupedResults).map(([category, categoryResults]) => (
                                             <div key={category}>
-                                                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+                                                <h3 className="text-xs font-bold uppercase tracking-wider text-gcs-muted-text mb-3">
                                                     {category}
                                                 </h3>
                                                 <div className="space-y-1">
@@ -242,23 +242,23 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                                                 key={result.id}
                                                                 onClick={() => handleSelect(result)}
                                                                 className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all text-left ${globalIndex === selectedIndex
-                                                                    ? "bg-slate-900 text-white"
-                                                                    : "bg-white text-slate-900 hover:bg-gray-50"
+                                                                    ? "bg-gcs-primary text-white shadow-sm"
+                                                                    : "bg-white text-gcs-foreground hover:bg-neutral-50 border border-transparent hover:border-gcs-border/60"
                                                                     }`}
                                                             >
                                                                 <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${globalIndex === selectedIndex
                                                                     ? "bg-white/20"
-                                                                    : "bg-gray-100"
+                                                                    : "bg-neutral-50"
                                                                     }`}>
-                                                                    <result.icon className={`h-5 w-5 ${globalIndex === selectedIndex ? "text-white" : "text-slate-600"}`} />
+                                                                    <result.icon className={`h-5 w-5 ${globalIndex === selectedIndex ? "text-white" : "text-gcs-muted-text"}`} />
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <p className="font-semibold truncate">{result.title}</p>
-                                                                    <p className={`text-sm truncate ${globalIndex === selectedIndex ? "text-white/80" : "text-slate-600"}`}>
+                                                                    <p className={`text-sm truncate ${globalIndex === selectedIndex ? "text-white/85" : "text-gcs-muted-text"}`}>
                                                                         {result.description}
                                                                     </p>
                                                                 </div>
-                                                                <ArrowRight className={`h-4 w-4 shrink-0 ${globalIndex === selectedIndex ? "text-white" : "text-slate-400"}`} />
+                                                                <ArrowRight className={`h-4 w-4 shrink-0 ${globalIndex === selectedIndex ? "text-white" : "text-gcs-muted-text"}`} />
                                                             </button>
                                                         )
                                                     })}
@@ -268,18 +268,18 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
-                                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                                            <Search className="h-8 w-8 text-gray-300" />
+                                        <div className="h-16 w-16 rounded-full bg-neutral-50 border border-gcs-border/60 flex items-center justify-center mx-auto mb-4">
+                                            <Search className="h-8 w-8 text-gcs-muted-text/50" />
                                         </div>
-                                        <p className="text-gray-500 font-medium">No results found for &quot;{query}&quot;</p>
-                                        <p className="text-gray-400 text-sm mt-1">Try searching for services, doctors, or pages</p>
+                                        <p className="text-gcs-muted-text font-medium">No results found for &quot;{query}&quot;</p>
+                                        <p className="text-gcs-muted-text/80 text-sm mt-1">Try another keyword or browse quick actions below</p>
                                     </div>
                                 )
                             ) : (
                                 <div className="space-y-8">
                                     {/* Quick Actions */}
                                     <div>
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-gcs-muted-text mb-3">
                                             Quick Actions
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -288,9 +288,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                                     key={action.label}
                                                     href={action.href}
                                                     onClick={onClose}
-                                                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 text-slate-900 hover:bg-black hover:text-white transition-all group"
+                                                    className="flex items-center gap-3 p-3 rounded-xl border border-gcs-border/60 bg-white text-gcs-foreground hover:border-gcs-primary hover:bg-gcs-primary hover:text-white transition-all group shadow-sm"
                                                 >
-                                                    <action.icon className="h-5 w-5 shrink-0 text-slate-600 group-hover:text-white" />
+                                                    <action.icon className="h-5 w-5 shrink-0 text-gcs-primary group-hover:text-white" />
                                                     <span className="font-medium text-sm">{action.label}</span>
                                                 </Link>
                                             ))}
@@ -300,24 +300,24 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                     {/* Recent Searches */}
                                     {recentSearches.length > 0 && (
                                         <div>
-                                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-gcs-muted-text mb-3 flex items-center gap-2">
                                                 <Clock className="h-3 w-3" /> Recent Searches
                                             </h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {recentSearches.map((search) => (
                                                     <div
                                                         key={search}
-                                                        className="group flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5 text-sm text-slate-800"
+                                                        className="group flex items-center gap-1 rounded-full border border-gcs-border/70 bg-white px-3 py-1.5 text-sm text-gcs-foreground shadow-sm"
                                                     >
                                                         <button
                                                             onClick={() => setQuery(search)}
-                                                            className="transition-colors hover:text-slate-950"
+                                                            className="transition-colors hover:text-gcs-primary"
                                                         >
                                                             {search}
                                                         </button>
                                                         <button
                                                             onClick={() => clearRecentSearch(search)}
-                                                            className="h-4 w-4 rounded-full hover:bg-gray-200 flex items-center justify-center ml-1"
+                                                            className="h-4 w-4 rounded-full hover:bg-neutral-100 flex items-center justify-center ml-1"
                                                         >
                                                             <X className="h-3 w-3" />
                                                         </button>
@@ -329,7 +329,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
                                     {/* Trending */}
                                     <div>
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-gcs-muted-text mb-3 flex items-center gap-2">
                                             <TrendingUp className="h-3 w-3" /> Trending
                                         </h3>
                                         <div className="flex flex-wrap gap-2">
@@ -337,7 +337,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                                 <button
                                                     key={search}
                                                     onClick={() => setQuery(search)}
-                                                    className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-slate-800 transition-all hover:border-black hover:bg-black hover:text-white"
+                                                    className="rounded-full border border-gcs-border bg-white px-4 py-2 text-sm font-medium text-gcs-foreground transition-all hover:border-gcs-primary hover:bg-gcs-primary hover:text-white shadow-sm"
                                                 >
                                                     {search}
                                                 </button>
@@ -349,12 +349,12 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                            <div className="flex items-center justify-between text-xs text-gray-400">
-                                <span>Search powered by Hospitals</span>
+                        <div className="p-4 border-t border-neutral-100 bg-white">
+                            <div className="flex items-center justify-between text-xs text-gcs-muted-text">
+                                <span>Ghana Chemical Society</span>
                                 <button
                                     onClick={onClose}
-                                    className="px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors font-medium"
+                                    className="px-3 py-1.5 rounded-full hover:bg-neutral-100 transition-colors font-medium text-gcs-foreground"
                                 >
                                     Close
                                 </button>

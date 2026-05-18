@@ -5,7 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import { cmsCredentials } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
+import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
+import { handleCmsResponse } from "@/lib/cms-toast";
 
 type Header = {
   id: string;
@@ -47,6 +49,7 @@ export function JoinCmsClient() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [stepForm, setStepForm] = useState(emptyStep);
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setErr(null);
@@ -85,39 +88,70 @@ export function JoinCmsClient() {
         imageAlt: header.imageAlt || undefined,
       }),
     });
-    if (!res.ok) setErr(await res.text());
-    else setHeader((await res.json()) as Header);
+    if (await handleCmsResponse(res, "Join header saved", { setErr })) {
+      setHeader((await res.json()) as Header);
+    }
   }
 
-  async function createStep(e: React.FormEvent) {
+  function startEditStep(s: Step) {
+    setEditingStepId(s.id);
+    setStepForm({
+      stepKey: s.stepKey,
+      title: s.title,
+      description: s.description,
+      imageUrl: s.imageUrl,
+      imagePublicId: s.imagePublicId,
+      imageAlt: s.imageAlt,
+      sortOrder: s.sortOrder,
+      published: s.published,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function resetStepForm() {
+    setEditingStepId(null);
+    setStepForm(emptyStep);
+  }
+
+  async function saveStep(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
-    const res = await fetch("/api/cms/join-steps", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      ...cmsCredentials,
-      body: JSON.stringify({
-        stepKey: stepForm.stepKey,
-        title: stepForm.title,
-        description: stepForm.description,
-        imageUrl: stepForm.imageUrl || undefined,
-        imagePublicId: stepForm.imagePublicId,
-        imageAlt: stepForm.imageAlt || stepForm.title,
-        sortOrder: stepForm.sortOrder,
-        published: stepForm.published,
-      }),
-    });
-    if (!res.ok) setErr(await res.text());
-    else {
-      setStepForm(emptyStep);
+    const payload = {
+      stepKey: stepForm.stepKey,
+      title: stepForm.title,
+      description: stepForm.description,
+      imageUrl: stepForm.imageUrl || undefined,
+      imagePublicId: stepForm.imagePublicId,
+      imageAlt: stepForm.imageAlt || stepForm.title,
+      sortOrder: stepForm.sortOrder,
+      published: stepForm.published,
+    };
+    const res = editingStepId
+      ? await fetch(`/api/cms/join-steps/${editingStepId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          ...cmsCredentials,
+          body: JSON.stringify(payload),
+        })
+      : await fetch("/api/cms/join-steps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          ...cmsCredentials,
+          body: JSON.stringify(payload),
+        });
+    if (await handleCmsResponse(res, editingStepId ? "Step updated" : "Step added", { setErr })) {
+      resetStepForm();
       await load();
     }
   }
 
   async function removeStep(id: string) {
     if (!confirm("Delete this step?")) return;
-    await fetch(`/api/cms/join-steps/${id}`, { method: "DELETE", ...cmsCredentials });
-    await load();
+    const res = await fetch(`/api/cms/join-steps/${id}`, { method: "DELETE", ...cmsCredentials });
+    if (await handleCmsResponse(res, "Step deleted", { setErr })) {
+      if (editingStepId === id) resetStepForm();
+      await load();
+    }
   }
 
   if (loading || !header) return <p className="text-sm text-slate-500">Loading…</p>;
@@ -163,8 +197,17 @@ export function JoinCmsClient() {
       </CmsCard>
 
       <CmsCard className="p-8">
-        <CmsSectionTitle description="Optional illustration per step.">Add step</CmsSectionTitle>
-        <form className="mt-8 grid gap-5 md:grid-cols-2" onSubmit={createStep}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <CmsSectionTitle description="Optional illustration per step.">
+            {editingStepId ? "Edit step" : "Add step"}
+          </CmsSectionTitle>
+          {editingStepId ? (
+            <CmsButton type="button" variant="ghost" onClick={resetStepForm}>
+              Cancel edit
+            </CmsButton>
+          ) : null}
+        </div>
+        <form className="mt-8 grid gap-5 md:grid-cols-2" onSubmit={saveStep}>
           <div className="md:col-span-2">
             <CmsImageUpload
               label="Step image (optional)"
@@ -203,7 +246,7 @@ export function JoinCmsClient() {
             Published
           </label>
           <div className="md:col-span-2">
-            <CmsButton type="submit">Add step</CmsButton>
+            <CmsButton type="submit">{editingStepId ? "Save changes" : "Add step"}</CmsButton>
           </div>
         </form>
       </CmsCard>
@@ -224,9 +267,7 @@ export function JoinCmsClient() {
                   <p className="font-semibold text-slate-900">{s.title}</p>
                   <p className="line-clamp-2 text-sm text-slate-600">{s.description}</p>
                 </div>
-                <CmsButton variant="danger" className="shrink-0 self-start" type="button" onClick={() => void removeStep(s.id)}>
-                  Delete
-                </CmsButton>
+                <CmsListActions onEdit={() => startEditStep(s)} onDelete={() => void removeStep(s.id)} />
               </CmsCard>
             </li>
           ))}

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
-import { getPublishedAboutSections } from "@/lib/cms-queries";
-import { ArrowUpRight, Landmark } from "lucide-react";
+import { ContactFooter } from "@/components/home/contact-footer";
+import { AboutHeroHeadline } from "@/components/about/about-hero-headline";
+import { AboutSections } from "@/components/about/about-sections";
+import { getHomepageExploreForPublic, getPublishedAboutSections } from "@/lib/cms-queries";
+import { ArrowUpRight, Landmark, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "About | Ghana Chemical Society",
@@ -11,164 +13,125 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const sections = await getPublishedAboutSections();
+  const [sections, mission] = await Promise.all([getPublishedAboutSections(), getHomepageExploreForPublic()]);
 
   return (
     <>
       <Header />
       <main className="min-h-screen bg-white text-gcs-foreground" data-aos="fade-up">
-        {/* Intro band — white, crisp top */}
-        <div className="border-b border-gcs-border/50 bg-white">
-          <div className="mx-auto max-w-[1440px] px-4 pb-14 pt-28 sm:px-6 md:px-12 md:pb-16 md:pt-32">
+        {/* Hero — soft blue wash into white */}
+        <section className="relative overflow-hidden border-b border-blue-100/70">
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(29,78,216,0.14),transparent_55%)]"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-sky-300/15 blur-3xl"
+            aria-hidden
+          />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-blue-200/80 to-transparent" aria-hidden />
+
+          <div className="relative mx-auto max-w-[1440px] px-4 pb-16 pt-28 sm:px-6 md:px-12 md:pb-20 md:pt-32">
             <header className="mx-auto max-w-3xl text-center">
-              <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
-                <Landmark className="h-3.5 w-3.5 text-gcs-primary" aria-hidden />
-                About the society
+              <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/90 px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm shadow-blue-900/5 backdrop-blur-sm">
+                <Landmark className="h-4 w-4 text-gcs-primary" aria-hidden />
+                {mission.aboutEyebrow}
               </div>
-              <h1 className="text-3xl font-medium tracking-tight md:text-4xl lg:text-[2.5rem] lg:leading-tight">
-                Who we are
-              </h1>
-              <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-gcs-muted-text md:text-base">
-                The Ghana Chemical Society brings together educators, researchers, students, and partners to strengthen
-                chemical sciences across the country — from classrooms and laboratories to policy and industry.
+              <AboutHeroHeadline line1={mission.headlineLine1} line2={mission.headlineLine2} />
+              <p className="gcs-lead mx-auto mt-6 max-w-2xl">
+                {mission.aboutBody}
               </p>
+              <div className="mx-auto mt-8 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  href="/membership"
+                  className="inline-flex items-center gap-2 rounded-full bg-gcs-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-colors hover:bg-gcs-primary-hover"
+                >
+                  Join the society
+                  <ArrowUpRight className="h-4 w-4" aria-hidden />
+                </Link>
+                <Link
+                  href="/events"
+                  className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:border-gcs-primary hover:bg-blue-50/50 hover:text-gcs-primary"
+                >
+                  Upcoming events
+                </Link>
+              </div>
             </header>
           </div>
-        </div>
+        </section>
 
-        {/* Content — light neutral strip so white cards read clearly */}
-        <div className="border-b border-gcs-border/40 bg-slate-50/60">
-          <div className="mx-auto max-w-[1440px] px-4 py-14 sm:px-6 md:px-12 md:py-20">
-            {sections.length === 0 ? (
-              <div className="mx-auto max-w-xl rounded-2xl border border-dashed border-gcs-border bg-white px-8 py-14 text-center shadow-sm">
-                <p className="text-base font-medium text-gcs-foreground">Content coming soon</p>
-                <p className="mt-2 text-sm text-gcs-muted-text">
-                  Society sections will appear here once they are published in the admin.
+        {/* Sections — light blue canvas */}
+        <section className="relative bg-gradient-to-b from-blue-50/50 via-white to-white">
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-blue-50/80 to-transparent"
+            aria-hidden
+          />
+          <div className="relative mx-auto max-w-[1440px] px-4 py-14 sm:px-6 md:px-12 md:py-20">
+            {sections.length > 0 ? (
+              <div className="mb-12 flex flex-col items-center text-center md:mb-14">
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-100/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gcs-primary">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                  Our story
+                </div>
+                <h2 className="gcs-section-title mt-4">
+                  Who we are &amp; what we do
+                </h2>
+                <p className="gcs-lead mt-4 max-w-xl">
+                  Programmes, governance, and community initiatives that advance chemistry across Ghana.
                 </p>
               </div>
-            ) : (
-              <div className="mx-auto flex max-w-4xl flex-col gap-8 md:gap-10">
-                {sections.map((s, i) => {
-                  const hasMedia = Boolean(s.media);
-                  const isWide = s.layout === "wide";
-
-                  if (isWide) {
-                    return (
-                      <article
-                        key={s.id}
-                        className="overflow-hidden rounded-2xl border border-gcs-border/60 bg-white shadow-sm ring-1 ring-slate-900/[0.04] md:rounded-[1.75rem]"
-                      >
-                        {hasMedia ? (
-                          <div className="relative aspect-[21/9] w-full min-h-[200px] border-b border-gcs-border/50 bg-slate-100">
-                            <Image
-                              src={s.media!.url}
-                              alt={s.media!.alt ?? s.title}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 1024px) 100vw, 896px"
-                              priority={i === 0}
-                            />
-                          </div>
-                        ) : null}
-                        <div className="px-6 py-8 md:px-10 md:py-10">
-                          <h2 className="text-xl font-semibold tracking-tight text-gcs-foreground md:text-2xl">{s.title}</h2>
-                          {s.subtitle ? <p className="mt-2 text-base font-medium text-gcs-primary md:text-lg">{s.subtitle}</p> : null}
-                          <div className="mt-6 space-y-4 text-sm leading-relaxed text-gcs-muted-text md:text-base">
-                            {s.body.split("\n\n").map((block, j) => (
-                              <p key={j}>{block}</p>
-                            ))}
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  }
-
-                  const imageFirst = i % 2 === 0;
-
-                  return (
-                    <article
-                      key={s.id}
-                      className="overflow-hidden rounded-2xl border border-gcs-border/60 bg-white shadow-sm ring-1 ring-slate-900/[0.04] md:rounded-[1.75rem]"
-                    >
-                      <div
-                        className={`grid gap-0 md:grid-cols-2 md:items-stretch ${!hasMedia ? "md:grid-cols-1" : ""}`}
-                      >
-                        {hasMedia ? (
-                          <div
-                            className={`relative min-h-[220px] border-gcs-border/50 bg-slate-100 md:min-h-[280px] ${
-                              imageFirst ? "border-b md:order-1 md:border-b-0 md:border-r" : "border-b md:order-2 md:border-b-0 md:border-l"
-                            }`}
-                          >
-                            <Image
-                              src={s.media!.url}
-                              alt={s.media!.alt ?? s.title}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 768px) 100vw, 50vw"
-                              priority={i === 0}
-                            />
-                          </div>
-                        ) : null}
-                        <div
-                          className={`flex flex-col justify-center px-6 py-8 md:px-10 md:py-10 ${
-                            hasMedia ? (imageFirst ? "md:order-2" : "md:order-1") : ""
-                          }`}
-                        >
-                          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gcs-muted-text">
-                            Section {String(i + 1).padStart(2, "0")}
-                          </p>
-                          <h2 className="mt-2 text-xl font-semibold tracking-tight text-gcs-foreground md:text-2xl">{s.title}</h2>
-                          {s.subtitle ? (
-                            <p className="mt-2 text-base font-medium text-gcs-primary md:text-lg">{s.subtitle}</p>
-                          ) : null}
-                          <div className="mt-5 space-y-4 text-sm leading-relaxed text-gcs-muted-text md:text-[0.9375rem]">
-                            {s.body.split("\n\n").map((block, j) => (
-                              <p key={j}>{block}</p>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
+            ) : null}
+            <AboutSections sections={sections} />
           </div>
-        </div>
+        </section>
 
-        {/* CTA — solid white panel */}
-        <div className="bg-white">
-          <div className="mx-auto max-w-[1440px] px-4 py-14 sm:px-6 md:px-12 md:py-16">
-            <aside className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-gcs-border/55 bg-white px-6 py-10 shadow-sm ring-1 ring-gcs-border/15 md:flex md:items-center md:justify-between md:gap-10 md:rounded-[1.75rem] md:px-10 md:py-12">
-              <div className="max-w-xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gcs-muted-text">Get involved</p>
-                <p className="mt-3 text-lg font-medium tracking-tight text-gcs-foreground md:text-xl">
+        {/* CTA — deep blue panel */}
+        <section className="relative overflow-hidden px-4 py-14 sm:px-6 md:px-12 md:py-20">
+          <div className="mx-auto max-w-5xl">
+            <aside className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gcs-primary via-blue-700 to-blue-900 px-6 py-10 shadow-xl shadow-blue-900/25 md:flex md:items-center md:justify-between md:gap-10 md:px-12 md:py-12">
+              <div
+                className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-2xl"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-sky-400/20 blur-2xl"
+                aria-hidden
+              />
+              <div className="relative max-w-xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100/90">Get involved</p>
+                <p className="mt-3 text-xl font-bold tracking-tight text-white md:text-2xl">
                   Collaborate with GCS or explore membership
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-gcs-muted-text md:text-base">
+                <p className="gcs-lead mt-3 text-blue-100/95">
                   Whether you are joining as an individual, institution, or partner, we will point you to the right
                   pathway.
                 </p>
               </div>
-              <div className="mt-8 flex flex-wrap gap-3 md:mt-0 md:shrink-0">
+              <div className="relative mt-8 flex flex-wrap gap-3 md:mt-0 md:shrink-0">
                 <Link
                   href="/membership"
-                  className="inline-flex items-center gap-2 rounded-full bg-gcs-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gcs-primary-hover"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-gcs-primary shadow-sm transition-colors hover:bg-blue-50"
                 >
                   Membership
-                  <ArrowUpRight className="h-4 w-4" />
+                  <ArrowUpRight className="h-4 w-4" aria-hidden />
                 </Link>
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-2 rounded-full border border-gcs-border bg-white px-6 py-3 text-sm font-semibold text-gcs-foreground transition-colors hover:border-gcs-primary hover:bg-slate-50"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
                 >
-                  Contact
-                  <ArrowUpRight className="h-4 w-4 opacity-70" />
+                  Contact us
+                  <ArrowUpRight className="h-4 w-4 opacity-90" aria-hidden />
                 </Link>
               </div>
             </aside>
           </div>
-        </div>
+        </section>
+
+        <ContactFooter />
       </main>
     </>
   );

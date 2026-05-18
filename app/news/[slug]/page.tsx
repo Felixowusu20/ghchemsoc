@@ -27,7 +27,7 @@ export default async function NewsArticlePage({ params }: Props) {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gcs-muted-bg/40 pb-24 pt-28 md:pb-32 md:pt-32">
+      <main className="min-h-screen bg-white pb-24 pt-28 md:pb-32 md:pt-32">
         <article className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8">
           <Link
             href="/news"

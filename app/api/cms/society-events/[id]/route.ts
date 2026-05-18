@@ -3,6 +3,8 @@ import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { deleteCloudinaryAsset } from "@/lib/cloudinary-server";
+import { registrationFormFieldsSchema } from "@/lib/event-registration-form";
+import { Prisma } from "@prisma/client";
 import type { SocietyEvent, Media } from "@prisma/client";
 
 type Row = SocietyEvent & { media: Media | null };
@@ -11,6 +13,7 @@ const patchSchema = z
   .object({
     title: z.string().optional(),
     excerpt: z.string().optional(),
+    body: z.string().nullable().optional(),
     startDate: z.coerce.date().optional(),
     endDate: z.coerce.date().nullable().optional(),
     timeLabel: z.string().optional(),
@@ -23,6 +26,7 @@ const patchSchema = z
     imageUrl: z.string().url().optional(),
     imagePublicId: z.string().nullable().optional(),
     imageAlt: z.string().optional(),
+    registrationFormFields: z.union([z.null(), registrationFormFieldsSchema]).optional(),
   })
   .strict();
 
@@ -31,6 +35,7 @@ function serialize(r: Row) {
     id: r.id,
     title: r.title,
     excerpt: r.excerpt,
+    body: r.body,
     startDate: r.startDate.toISOString(),
     endDate: r.endDate?.toISOString() ?? null,
     timeLabel: r.timeLabel,
@@ -44,7 +49,17 @@ function serialize(r: Row) {
     imageUrl: r.media?.url ?? "",
     imagePublicId: r.media?.publicId ?? null,
     imageAlt: r.media?.alt ?? "",
+    registrationFormFields: r.registrationFormFields,
   };
+}
+
+export async function GET(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const denied = await assertAdmin(request);
+  if (denied) return denied;
+  const { id } = await ctx.params;
+  const row = await prisma.societyEvent.findUnique({ where: { id }, include: { media: true } });
+  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(serialize(row));
 }
 
 export async function PATCH(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -92,6 +107,7 @@ export async function PATCH(request: NextRequest, ctx: { params: Promise<{ id: s
       data: {
         ...(d.title !== undefined ? { title: d.title } : {}),
         ...(d.excerpt !== undefined ? { excerpt: d.excerpt } : {}),
+        ...(d.body !== undefined ? { body: d.body } : {}),
         ...(d.startDate !== undefined ? { startDate: d.startDate } : {}),
         ...(d.endDate !== undefined ? { endDate: d.endDate } : {}),
         ...(d.timeLabel !== undefined ? { timeLabel: d.timeLabel } : {}),
@@ -101,12 +117,18 @@ export async function PATCH(request: NextRequest, ctx: { params: Promise<{ id: s
         ...(d.featured !== undefined ? { featured: d.featured } : {}),
         ...(d.published !== undefined ? { published: d.published } : {}),
         ...(d.sortOrder !== undefined ? { sortOrder: d.sortOrder } : {}),
+        ...(d.registrationFormFields !== undefined
+          ? {
+              registrationFormFields:
+                d.registrationFormFields === null ? Prisma.DbNull : (d.registrationFormFields as Prisma.InputJsonValue),
+            }
+          : {}),
       },
       include: { media: true },
     });
   });
 
-  return NextResponse.json(serialize(row));
+  return NextResponse.json(serialize(row as Row));
 }
 
 export async function DELETE(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {

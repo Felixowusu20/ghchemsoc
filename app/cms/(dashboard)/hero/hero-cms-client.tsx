@@ -5,7 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import { cmsCredentials } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
+import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
+import { handleCmsResponse } from "@/lib/cms-toast";
 
 type Slide = {
   id: string;
@@ -53,6 +55,38 @@ export function HeroCmsClient() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  function slideToForm(s: Slide) {
+    let tags = "";
+    let highlights = "";
+    try {
+      tags = (JSON.parse(s.tagsJson) as string[]).join(", ");
+      highlights = (JSON.parse(s.highlightsJson) as string[]).join("\n");
+    } catch {
+      tags = "";
+      highlights = "";
+    }
+    return {
+      imageUrl: s.imageUrl,
+      imagePublicId: s.imagePublicId,
+      imageAlt: s.imageAlt,
+      eyebrow: s.eyebrow,
+      headlineLine1: s.headlineLine1,
+      headlineLine2: s.headlineLine2,
+      description: s.description,
+      tags,
+      highlights,
+      ctaLabel: s.ctaLabel,
+      ctaHref: s.ctaHref,
+      secondaryLabel: s.secondaryLabel ?? "",
+      secondaryHref: s.secondaryHref ?? "",
+      statValue: s.statValue ?? "",
+      statLabel: s.statLabel ?? "",
+      sortOrder: s.sortOrder,
+      published: s.published,
+    };
+  }
 
   const load = useCallback(async () => {
     setErr(null);
@@ -71,7 +105,18 @@ export function HeroCmsClient() {
     void load();
   }, [load]);
 
-  async function createSlide(e: React.FormEvent) {
+  function startEdit(s: Slide) {
+    setEditingId(s.id);
+    setForm(slideToForm(s));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function resetForm() {
+    setEditingId(null);
+    setForm(emptyForm);
+  }
+
+  async function saveSlide(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
     if (!form.imageUrl) {
@@ -86,43 +131,50 @@ export function HeroCmsClient() {
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean);
-    const res = await fetch("/api/cms/hero-slides", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      ...cmsCredentials,
-      body: JSON.stringify({
-        imageUrl: form.imageUrl,
-        imagePublicId: form.imagePublicId || null,
-        imageAlt: form.imageAlt,
-        eyebrow: form.eyebrow,
-        headlineLine1: form.headlineLine1,
-        headlineLine2: form.headlineLine2,
-        description: form.description,
-        tags,
-        highlights,
-        ctaLabel: form.ctaLabel,
-        ctaHref: form.ctaHref,
-        secondaryLabel: form.secondaryLabel || null,
-        secondaryHref: form.secondaryHref || null,
-        statValue: form.statValue || null,
-        statLabel: form.statLabel || null,
-        sortOrder: form.sortOrder,
-        published: form.published,
-      }),
-    });
-    if (!res.ok) {
-      setErr(await res.text());
-      return;
-    }
-    setForm(emptyForm);
+    const payload = {
+      imageUrl: form.imageUrl,
+      imagePublicId: form.imagePublicId || null,
+      imageAlt: form.imageAlt,
+      eyebrow: form.eyebrow,
+      headlineLine1: form.headlineLine1,
+      headlineLine2: form.headlineLine2,
+      description: form.description,
+      tags,
+      highlights,
+      ctaLabel: form.ctaLabel,
+      ctaHref: form.ctaHref,
+      secondaryLabel: form.secondaryLabel || null,
+      secondaryHref: form.secondaryHref || null,
+      statValue: form.statValue || null,
+      statLabel: form.statLabel || null,
+      sortOrder: form.sortOrder,
+      published: form.published,
+    };
+    const res = editingId
+      ? await fetch(`/api/cms/hero-slides/${editingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          ...cmsCredentials,
+          body: JSON.stringify(payload),
+        })
+      : await fetch("/api/cms/hero-slides", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          ...cmsCredentials,
+          body: JSON.stringify(payload),
+        });
+    if (!(await handleCmsResponse(res, editingId ? "Slide updated" : "Hero slide saved", { setErr }))) return;
+    resetForm();
     await load();
   }
 
   async function remove(id: string) {
     if (!confirm("Delete this slide?")) return;
     const res = await fetch(`/api/cms/hero-slides/${id}`, { method: "DELETE", ...cmsCredentials });
-    if (!res.ok) setErr("Delete failed");
-    await load();
+    if (await handleCmsResponse(res, "Slide deleted", { setErr, failureTitle: "Delete failed" })) {
+      if (editingId === id) resetForm();
+      await load();
+    }
   }
 
   if (loading) {
@@ -146,8 +198,17 @@ export function HeroCmsClient() {
       {err ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-100">{err}</p> : null}
 
       <CmsCard className="p-8">
-        <CmsSectionTitle description="Upload cover art, then add copy and CTAs.">New slide</CmsSectionTitle>
-        <form className="mt-8 grid gap-5 md:grid-cols-2" onSubmit={createSlide}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <CmsSectionTitle description="Upload cover art, then add copy and CTAs.">
+            {editingId ? "Edit slide" : "New slide"}
+          </CmsSectionTitle>
+          {editingId ? (
+            <CmsButton type="button" variant="ghost" onClick={resetForm}>
+              Cancel edit
+            </CmsButton>
+          ) : null}
+        </div>
+        <form className="mt-8 grid gap-5 md:grid-cols-2" onSubmit={saveSlide}>
           <div className="md:col-span-2">
             <CmsImageUpload
               label="Slide image"
@@ -221,7 +282,7 @@ export function HeroCmsClient() {
           </label>
           <div className="md:col-span-2">
             <CmsButton type="submit" className="min-w-[160px]">
-              Create slide
+              {editingId ? "Save changes" : "Create slide"}
             </CmsButton>
           </div>
         </form>
@@ -249,9 +310,7 @@ export function HeroCmsClient() {
                     Order {s.sortOrder} · {s.published ? "Live" : "Draft"}
                   </p>
                 </div>
-                <CmsButton variant="danger" className="shrink-0 self-start" type="button" onClick={() => void remove(s.id)}>
-                  Delete
-                </CmsButton>
+                <CmsListActions onEdit={() => startEdit(s)} onDelete={() => void remove(s.id)} />
               </CmsCard>
             </li>
           ))}

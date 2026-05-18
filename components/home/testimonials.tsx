@@ -90,7 +90,7 @@ export function Testimonials() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="mb-12 inline-flex items-center gap-2 rounded-full border border-gcs-border bg-gcs-muted-bg/60 px-6 py-2 shadow-sm"
+                    className="mb-12 inline-flex items-center gap-2 rounded-full border border-gcs-border bg-white px-6 py-2 shadow-sm"
                 >
                     <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-muted-text md:text-sm">
                         Member voices
@@ -115,7 +115,7 @@ export function Testimonials() {
                             className="w-full"
                         >
                             <div className="relative mb-12">
-                                <span className="absolute -left-4 -top-12 select-none font-serif text-6xl text-gcs-muted-bg md:-left-12 md:text-8xl">
+                                <span className="absolute -left-4 -top-12 select-none font-serif text-6xl text-neutral-100 md:-left-12 md:text-8xl">
                                     ❝
                                 </span>
                                 <p className="text-2xl font-medium italic leading-relaxed tracking-tight text-gcs-foreground md:text-3xl lg:text-4xl">

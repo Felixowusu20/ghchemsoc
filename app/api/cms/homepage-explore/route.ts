@@ -2,30 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
-import { HOMEPAGE_EXPLORE_DEFAULTS } from "@/lib/homepage-explore-defaults";
 import type { HomepageExploreSettings, Media } from "@prisma/client";
+import { HOMEPAGE_EXPLORE_ID, homepageExploreCreateData } from "@/lib/homepage-explore";
 
 type Row = HomepageExploreSettings & {
   mainImageMedia: Media | null;
   secondaryImageMedia: Media | null;
 };
-
-function prismaCreateBody() {
-  const d = HOMEPAGE_EXPLORE_DEFAULTS;
-  return {
-    id: "homepage_explore" as const,
-    missionEyebrow: d.missionEyebrow,
-    headlineLine1: d.headlineLine1,
-    headlineLine2: d.headlineLine2,
-    aboutEyebrow: d.aboutEyebrow,
-    aboutBody: d.aboutBody,
-    imageBadge: d.imageBadge,
-    imageHoverQuote: d.imageHoverQuote,
-    locationLabel: d.locationLabel,
-    secondaryBadge: d.secondaryBadge,
-    bottomBlurb: d.bottomBlurb,
-  };
-}
 
 function serialize(r: Row) {
   return {
@@ -74,12 +57,12 @@ const patchSchema = z
 
 async function ensureRow(): Promise<Row> {
   let row = await prisma.homepageExploreSettings.findUnique({
-    where: { id: "homepage_explore" },
+    where: { id: HOMEPAGE_EXPLORE_ID },
     include: { mainImageMedia: true, secondaryImageMedia: true },
   });
   if (!row) {
     row = await prisma.homepageExploreSettings.create({
-      data: prismaCreateBody(),
+      data: homepageExploreCreateData(),
       include: { mainImageMedia: true, secondaryImageMedia: true },
     });
   }
@@ -108,12 +91,12 @@ export async function PATCH(request: NextRequest) {
   const d = parsed.data;
 
   let existing = await prisma.homepageExploreSettings.findUnique({
-    where: { id: "homepage_explore" },
+    where: { id: HOMEPAGE_EXPLORE_ID },
     include: { mainImageMedia: true, secondaryImageMedia: true },
   });
   if (!existing) {
     existing = await prisma.homepageExploreSettings.create({
-      data: prismaCreateBody(),
+      data: homepageExploreCreateData(),
       include: { mainImageMedia: true, secondaryImageMedia: true },
     });
   }
@@ -173,7 +156,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     return tx.homepageExploreSettings.update({
-      where: { id: "homepage_explore" },
+      where: { id: HOMEPAGE_EXPLORE_ID },
       data: {
         ...(d.missionEyebrow !== undefined ? { missionEyebrow: d.missionEyebrow } : {}),
         ...(d.headlineLine1 !== undefined ? { headlineLine1: d.headlineLine1 } : {}),

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { registrationFormFieldsSchema } from "@/lib/event-registration-form";
+import { Prisma } from "@prisma/client";
 import type { SocietyEvent, Media } from "@prisma/client";
 
 type Row = SocietyEvent & { media: Media | null };
@@ -9,6 +11,7 @@ type Row = SocietyEvent & { media: Media | null };
 const createSchema = z.object({
   title: z.string().min(1),
   excerpt: z.string().min(1),
+  body: z.string().nullable().optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable().optional(),
   timeLabel: z.string().min(1),
@@ -21,6 +24,7 @@ const createSchema = z.object({
   imageUrl: z.string().url(),
   imagePublicId: z.string().nullable().optional(),
   imageAlt: z.string().optional(),
+  registrationFormFields: z.union([z.null(), registrationFormFieldsSchema]).optional(),
 });
 
 function serialize(r: Row) {
@@ -28,6 +32,7 @@ function serialize(r: Row) {
     id: r.id,
     title: r.title,
     excerpt: r.excerpt,
+    body: r.body,
     startDate: r.startDate.toISOString(),
     endDate: r.endDate?.toISOString() ?? null,
     timeLabel: r.timeLabel,
@@ -41,6 +46,7 @@ function serialize(r: Row) {
     imageUrl: r.media?.url ?? "",
     imagePublicId: r.media?.publicId ?? null,
     imageAlt: r.media?.alt ?? "",
+    registrationFormFields: r.registrationFormFields,
   };
 }
 
@@ -79,6 +85,7 @@ export async function POST(request: NextRequest) {
       data: {
         title: d.title,
         excerpt: d.excerpt,
+        body: d.body ?? null,
         startDate: d.startDate,
         endDate: d.endDate ?? null,
         timeLabel: d.timeLabel,
@@ -89,10 +96,13 @@ export async function POST(request: NextRequest) {
         published: d.published ?? true,
         sortOrder: d.sortOrder ?? 0,
         mediaId: m.id,
+        ...(d.registrationFormFields !== undefined && d.registrationFormFields !== null
+          ? { registrationFormFields: d.registrationFormFields as Prisma.InputJsonValue }
+          : {}),
       },
       include: { media: true },
     });
   });
 
-  return NextResponse.json(serialize(row));
+  return NextResponse.json(serialize(row as Row));
 }

@@ -3,40 +3,46 @@ import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { deleteCloudinaryAsset } from "@/lib/cloudinary-server";
-import type { Publication, Media } from "@prisma/client";
+import { syncPublicationArticles } from "@/lib/publications-sync-articles";
+import { serializePublicationCms, type PublicationWithRelations } from "@/lib/publications-serialize";
+import type { PublicationArticleInput } from "@/lib/publication-format";
 
-type PubRow = Publication & { media: Media | null };
+const articleSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1),
+  authors: z.string().min(1),
+  pdfHref: z.string().nullable().optional(),
+  sortOrder: z.number().optional(),
+  published: z.boolean().optional(),
+});
 
 const patchSchema = z
   .object({
-    title: z.string().optional(),
-    description: z.string().optional(),
+    title: z.string().min(1).optional(),
+    journalTitle: z.string().nullable().optional(),
+    description: z.string().min(1).optional(),
     meta: z.string().nullable().optional(),
     issue: z.string().nullable().optional(),
     href: z.string().nullable().optional(),
     published: z.boolean().optional(),
+    featured: z.boolean().optional(),
+    publishedAt: z.string().nullable().optional(),
     sortOrder: z.number().optional(),
     imageUrl: z.string().url().optional(),
     imagePublicId: z.string().nullable().optional(),
     imageAlt: z.string().optional(),
+    articles: z.array(articleSchema).optional(),
+    readerEmails: z.array(z.string().email()).optional(),
+    authorEmails: z.array(z.string().email()).optional(),
   })
   .strict();
 
-function serialize(r: PubRow) {
-  return {
-    id: r.id,
-    title: r.title,
-    meta: r.meta,
-    description: r.description,
-    issue: r.issue,
-    href: r.href,
-    published: r.published,
-    sortOrder: r.sortOrder,
-    mediaId: r.mediaId,
-    imageUrl: r.media?.url ?? "",
-    imagePublicId: r.media?.publicId ?? null,
-    imageAlt: r.media?.alt ?? "",
-  };
+function parsePublishedAt(value: string | null | undefined) {
+  if (value === null) return null;
+  if (value === undefined) return undefined;
+  if (!value.trim()) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 export async function PATCH(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -55,11 +61,18 @@ export async function PATCH(request: NextRequest, ctx: { params: Promise<{ id: s
 
   const existing = await prisma.publication.findUnique({
     where: { id },
-    include: { media: true },
+    include: { media: true, articles: true },
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const row = await prisma.$transaction(async (tx) => {
+    if (d.featured) {
+      await tx.publication.updateMany({
+        data: { featured: false },
+        where: { featured: true, id: { not: id } },
+      });
+    }
+
     if (d.imageUrl !== undefined || d.imagePublicId !== undefined || d.imageAlt !== undefined) {
       if (existing.mediaId) {
         await tx.media.update({
@@ -82,22 +95,37 @@ export async function PATCH(request: NextRequest, ctx: { params: Promise<{ id: s
       }
     }
 
-    return tx.publication.update({
+    const publishedAt = parsePublishedAt(d.publishedAt);
+
+    await tx.publication.update({
       where: { id },
       data: {
         ...(d.title !== undefined ? { title: d.title } : {}),
+        ...(d.journalTitle !== undefined ? { journalTitle: d.journalTitle?.trim() || null } : {}),
         ...(d.description !== undefined ? { description: d.description } : {}),
-        ...(d.meta !== undefined ? { meta: d.meta } : {}),
-        ...(d.issue !== undefined ? { issue: d.issue } : {}),
-        ...(d.href !== undefined ? { href: d.href } : {}),
+        ...(d.meta !== undefined ? { meta: d.meta?.trim() || null } : {}),
+        ...(d.issue !== undefined ? { issue: d.issue?.trim() || null } : {}),
+        ...(d.href !== undefined ? { href: d.href?.trim() || null } : {}),
         ...(d.published !== undefined ? { published: d.published } : {}),
+        ...(d.featured !== undefined ? { featured: d.featured } : {}),
+        ...(publishedAt !== undefined ? { publishedAt } : {}),
         ...(d.sortOrder !== undefined ? { sortOrder: d.sortOrder } : {}),
+        ...(d.readerEmails !== undefined ? { readerEmails: d.readerEmails } : {}),
+        ...(d.authorEmails !== undefined ? { authorEmails: d.authorEmails } : {}),
       },
-      include: { media: true },
+    });
+
+    if (d.articles !== undefined) {
+      await syncPublicationArticles(tx, id, d.articles as PublicationArticleInput[]);
+    }
+
+    return tx.publication.findUniqueOrThrow({
+      where: { id },
+      include: { media: true, articles: { orderBy: { sortOrder: "asc" } } },
     });
   });
 
-  return NextResponse.json(serialize(row));
+  return NextResponse.json(serializePublicationCms(row as PublicationWithRelations));
 }
 
 export async function DELETE(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {

@@ -66,17 +66,17 @@ export default async function ContactPage() {
   const cards = normalizeCards(row?.cards);
 
   return (
-    <main className="min-h-screen bg-gcs-muted-bg/40 text-gcs-foreground" data-aos="fade-up">
+    <main className="min-h-screen bg-white text-gcs-foreground" data-aos="fade-up">
       <Header />
 
       <section className="border-b border-gcs-border/60 bg-gcs-surface pb-12 pt-28 md:pb-16 md:pt-32">
         <div className="mx-auto max-w-[1440px] px-4 text-center sm:px-6 md:px-12">
-          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-gcs-border bg-gcs-muted-bg/50 px-4 py-1.5 text-sm font-medium text-gcs-muted-text">
+          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
             <MessageCircle className="h-4 w-4 text-gcs-primary" aria-hidden />
             {eyebrow}
           </div>
-          <h1 className="mt-6 text-3xl font-medium tracking-tight md:text-4xl lg:text-[2.75rem] lg:leading-tight">{headline}</h1>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-gcs-muted-text md:text-base">{subtext}</p>
+          <h1 className="gcs-page-title mt-6">{headline}</h1>
+          <p className="gcs-lead mx-auto mt-5 max-w-2xl">{subtext}</p>
         </div>
       </section>
 
@@ -93,7 +93,7 @@ export default async function ContactPage() {
                 <ContactForm />
               </div>
 
-              <div className="bg-gcs-muted-bg/25 p-6 md:p-10 lg:col-span-2">
+              <div className="border-t border-gcs-border/50 bg-white p-6 md:border-t-0 md:border-l md:p-10 lg:col-span-2">
                 <h3 className="text-lg font-semibold tracking-tight">Direct details</h3>
                 <p className="mt-2 text-sm text-gcs-muted-text">Managed in the CMS — update cards anytime from /cms/contact.</p>
                 <ul className="mt-8 space-y-6">
@@ -118,19 +118,19 @@ export default async function ContactPage() {
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href="/membership"
-                      className="rounded-full border border-gcs-border bg-gcs-muted-bg/40 px-4 py-2 text-sm font-medium text-gcs-foreground transition-colors hover:border-gcs-primary hover:text-gcs-primary"
+                      className="rounded-full border border-gcs-border bg-white px-4 py-2 text-sm font-medium text-gcs-foreground shadow-sm transition-colors hover:border-gcs-primary hover:bg-neutral-50 hover:text-gcs-primary"
                     >
                       Membership
                     </Link>
                     <Link
                       href="/events"
-                      className="rounded-full border border-gcs-border bg-gcs-muted-bg/40 px-4 py-2 text-sm font-medium text-gcs-foreground transition-colors hover:border-gcs-primary hover:text-gcs-primary"
+                      className="rounded-full border border-gcs-border bg-white px-4 py-2 text-sm font-medium text-gcs-foreground shadow-sm transition-colors hover:border-gcs-primary hover:bg-neutral-50 hover:text-gcs-primary"
                     >
                       Events
                     </Link>
                     <Link
                       href="/news"
-                      className="rounded-full border border-gcs-border bg-gcs-muted-bg/40 px-4 py-2 text-sm font-medium text-gcs-foreground transition-colors hover:border-gcs-primary hover:text-gcs-primary"
+                      className="rounded-full border border-gcs-border bg-white px-4 py-2 text-sm font-medium text-gcs-foreground shadow-sm transition-colors hover:border-gcs-primary hover:bg-neutral-50 hover:text-gcs-primary"
                     >
                       News
                     </Link>

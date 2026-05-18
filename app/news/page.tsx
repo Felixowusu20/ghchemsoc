@@ -23,18 +23,18 @@ export default async function NewsPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gcs-muted-bg/40 pb-24 pt-28 md:pb-32 md:pt-32">
+      <main className="min-h-screen bg-white pb-24 pt-28 md:pb-32 md:pt-32">
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-12">
           <header className="flex flex-col gap-10 border-b border-gcs-border pb-10 md:flex-row md:items-end md:justify-between md:pb-12">
             <div className="max-w-2xl md:max-w-3xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-gcs-border bg-gcs-muted-bg/50 px-4 py-1.5 text-sm font-medium text-gcs-muted-text">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
                 <Newspaper className="h-3.5 w-3.5 text-gcs-primary" aria-hidden />
                 News &amp; announcements
               </div>
-              <h1 className="text-3xl font-medium tracking-tight text-gcs-foreground md:text-4xl lg:text-[2.5rem] lg:leading-tight">
+              <h1 className="gcs-page-title">
                 From the society desk
               </h1>
-              <p className="mt-5 max-w-xl text-sm leading-relaxed text-gcs-muted-text md:text-base">
+              <p className="gcs-lead mt-5 max-w-xl">
                 Stories published from the CMS. Manage items at <span className="font-mono text-xs">/cms/news</span>.
               </p>
             </div>
@@ -69,7 +69,7 @@ export default async function NewsPage() {
                     </div>
                     <div className="flex flex-1 flex-col justify-center border-t border-gcs-border/60 bg-gcs-surface px-6 py-8 md:px-10 lg:border-l lg:border-t-0">
                       <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-gcs-muted-text">
-                        <span className="rounded-full bg-gcs-muted-bg px-3 py-1 text-gcs-primary">Featured</span>
+                        <span className="rounded-full border border-gcs-border/80 bg-neutral-50 px-3 py-1 text-gcs-primary">Featured</span>
                         <span className="h-1 w-1 rounded-full bg-gcs-border" aria-hidden />
                         <time dateTime={featured.date.toISOString()}>{fmt(featured.date)}</time>
                       </div>
@@ -79,7 +79,7 @@ export default async function NewsPage() {
                       <p className="mt-3 max-w-xl text-sm leading-relaxed text-gcs-muted-text md:text-[0.9375rem]">{featured.excerpt}</p>
                       <Link
                         href={`/news/${featured.slug}`}
-                        className="group mt-8 inline-flex w-fit items-center gap-2 rounded-full border border-gcs-border bg-gcs-muted-bg/40 px-5 py-2.5 text-sm font-semibold text-gcs-foreground transition-colors hover:border-gcs-primary hover:bg-gcs-primary hover:text-white"
+                        className="group mt-8 inline-flex w-fit items-center gap-2 rounded-full border border-gcs-border bg-white px-5 py-2.5 text-sm font-semibold text-gcs-foreground shadow-sm transition-colors hover:border-gcs-primary hover:bg-gcs-primary hover:text-white"
                       >
                         Read article
                         <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -96,7 +96,7 @@ export default async function NewsPage() {
                 <ul className="mt-8 grid list-none gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   {rest.map((post) => (
                     <li key={post.id}>
-                      <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gcs-border/50 bg-gcs-surface ring-1 ring-gcs-border/15 transition-colors hover:border-gcs-border hover:bg-gcs-muted-bg/20">
+                      <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gcs-border/50 bg-gcs-surface ring-1 ring-gcs-border/15 transition-colors hover:border-gcs-border hover:bg-neutral-50/80">
                         <Link href={`/news/${post.slug}`} className="flex flex-1 flex-col">
                           <div className="relative aspect-[16/11] w-full shrink-0 overflow-hidden border-b border-gcs-border/40">
                             <Image
