@@ -4,7 +4,7 @@ import { verifyAccessToken } from "@/lib/jwt";
 import { JWT_COOKIE_NAME } from "@/lib/auth-constants";
 import { jwtCookieClearOptions } from "@/lib/auth-cookie";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (!pathname.startsWith("/cms")) {
     return NextResponse.next();
