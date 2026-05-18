@@ -38,7 +38,6 @@ function serialize(row: {
     ctaLabel: row.ctaLabel,
     ctaHref: row.ctaHref,
     footerNote: row.footerNote ?? "",
-    showSearch: row.showSearch,
   };
 }
 
