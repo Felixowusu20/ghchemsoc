@@ -27,7 +27,9 @@ export default function CmsLoginPage() {
         <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Ghana Chemical Society</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">Content admin</h1>
-          <p className="mt-2 text-sm text-slate-400">Sign in with your administrator account.</p>
+          <p className="mt-2 text-sm text-slate-400">
+            Sign in to manage the public website — content, events, membership, and messages.
+          </p>
         </div>
         <CmsCard className="border-slate-700/50 bg-slate-900/80 p-8 shadow-2xl shadow-black/40 backdrop-blur-md">
           {err ? <p className="mb-4 rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-200">{err}</p> : null}
@@ -83,9 +85,9 @@ export default function CmsLoginPage() {
             </CmsButton>
           </form>
           <p className="mt-6 text-center text-sm text-slate-400">
-            Need an account?{" "}
+            First time here?{" "}
             <Link href="/cms/register" className="font-semibold text-sky-400 hover:text-sky-300">
-              Register
+              Create your admin account
             </Link>
           </p>
         </CmsCard>
