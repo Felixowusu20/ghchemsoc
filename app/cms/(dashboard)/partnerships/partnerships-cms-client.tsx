@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { cmsCredentials } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
+import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
 import { handleCmsResponse } from "@/lib/cms-toast";
 
@@ -144,7 +145,6 @@ export function PartnershipsCmsClient() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this partner card?")) return;
     const res = await fetch(`/api/cms/partnership-cards/${id}`, { method: "DELETE", ...cmsCredentials });
     if (await handleCmsResponse(res, "Partner card deleted", { setErr })) {
       if (editingId === id) resetCardForm();
@@ -311,14 +311,32 @@ export function PartnershipsCmsClient() {
                   </p>
                   <p className="font-semibold text-slate-900">{r.title}</p>
                 </div>
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <CmsButton type="button" onClick={() => startEdit(r)}>
-                    Edit
-                  </CmsButton>
-                  <CmsButton variant="danger" type="button" onClick={() => void remove(r.id)}>
-                    Delete
-                  </CmsButton>
-                </div>
+                <CmsListActions
+                  onEdit={() => startEdit(r)}
+                  onDelete={() => remove(r.id)}
+                  confirm={{
+                    title: "Delete this partner card?",
+                    description: (
+                      <>
+                        <span className="font-semibold text-slate-900">&ldquo;{r.title}&rdquo;</span>{" "}
+                        will be removed from the homepage Partnerships strip.
+                      </>
+                    ),
+                    highlights: (
+                      <ul className="space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>This action cannot be undone.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>Prefer to keep it? Edit the card and uncheck <em>Published</em> instead.</span>
+                        </li>
+                      </ul>
+                    ),
+                    confirmLabel: "Delete card",
+                  }}
+                />
               </CmsCard>
             </li>
           ))}
