@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { setMemberSessionCookie } from "@/lib/member-auth";
+import { findApprovedMembershipForLogin } from "@/lib/member-login-lookup";
 import { memberLoginErrorMessage, memberProfileFromApplication } from "@/lib/member-profile-from-db";
-import { normalizeMemberId } from "@/lib/member-profile";
+import { normalizeMembershipEmail } from "@/lib/member-email";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -22,40 +23,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: "Enter a valid email and member ID." }, { status: 400 });
   }
 
-  const email = parsed.data.email.trim().toLowerCase();
-  const memberIdNorm = normalizeMemberId(parsed.data.memberId);
+  const email = normalizeMembershipEmail(parsed.data.email);
 
   try {
-    const approved = await prisma.membershipApplication.findFirst({
-      where: {
-        email,
-        status: "approved",
-        memberId: { not: null },
-      },
-    });
+    const result = await findApprovedMembershipForLogin(email, parsed.data.memberId);
 
-    if (
-      approved?.memberId &&
-      normalizeMemberId(approved.memberId) === memberIdNorm
-    ) {
-      return NextResponse.json({
-        ok: true,
-        profile: memberProfileFromApplication(approved),
-      });
+    if (result.ok) {
+      const profile = memberProfileFromApplication(result.application);
+      const response = NextResponse.json({ ok: true, profile });
+      await setMemberSessionCookie(response, result.application);
+      return response;
     }
 
-    const byEmail = await prisma.membershipApplication.findFirst({
-      where: { email },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const byId = await prisma.membershipApplication.findFirst({
-      where: { memberId: memberIdNorm },
-    });
-
-    const hint = byEmail ?? byId;
     return NextResponse.json(
-      { ok: false, message: memberLoginErrorMessage(hint, email, parsed.data.memberId) },
+      {
+        ok: false,
+        message: memberLoginErrorMessage(result.hint, email, parsed.data.memberId),
+      },
       { status: 401 }
     );
   } catch (e) {

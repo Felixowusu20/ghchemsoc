@@ -30,6 +30,7 @@ export function LoginForm() {
     const [isPending, startTransition] = useTransition();
 
     const memberIdFromUrl = searchParams.get("memberId")?.trim() ?? "";
+    const memberEmailFromUrl = searchParams.get("email")?.trim() ?? "";
     const urlWantsMember = searchParams.get("role") === "member";
     const [tabOverride, setTabOverride] = useState<"staff" | "member" | null>(null);
 
@@ -75,6 +76,7 @@ export function LoginForm() {
                             try {
                                 const res = await fetch("/api/public/member-login", {
                                     method: "POST",
+                                    credentials: "include",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({ email, memberId }),
                                 });
@@ -109,7 +111,7 @@ export function LoginForm() {
                         saveMemberProfile(profile);
                         saveMemberAuthSession(profile);
                         gooeyToast.success("Welcome back", {
-                            description: "Your member portfolio is now unlocked on this device.",
+                            description: "Your member account is signed in on this device.",
                             preset: "smooth",
                             spring: false,
                         });
@@ -202,6 +204,8 @@ export function LoginForm() {
                                     type="email"
                                     autoComplete="email"
                                     required
+                                    key={memberEmailFromUrl || "member-email-default"}
+                                    defaultValue={memberEmailFromUrl}
                                     placeholder="Same email as on your application"
                                     className={cn(field)}
                                 />

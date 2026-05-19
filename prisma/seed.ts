@@ -6,6 +6,7 @@ import {
   PARTNERSHIP_CARD_SEEDS,
 } from "../lib/homepage-partnerships-defaults";
 import { Prisma } from "@prisma/client";
+import { MEMBER_BENEFIT_DEFAULTS, memberPortalCreateData } from "../lib/member-portal";
 
 const DEFAULT_EVENT_REGISTRATION_FORM: Prisma.InputJsonValue = [
   { id: "full_name", label: "Full name", type: "text", required: true },
@@ -37,6 +38,8 @@ async function main() {
   await prisma.partnershipCard.deleteMany();
   await prisma.homepagePartnershipsSettings.deleteMany();
   await prisma.membershipApplication.deleteMany();
+  await prisma.memberBenefit.deleteMany();
+  await prisma.memberPortalSettings.deleteMany();
   await prisma.contactSettings.deleteMany();
   await prisma.media.deleteMany();
 
@@ -386,6 +389,24 @@ async function main() {
         href: card.href,
         published: true,
         mediaId: img.id,
+      },
+    });
+  }
+
+  await prisma.memberPortalSettings.create({ data: memberPortalCreateData() });
+  for (let i = 0; i < MEMBER_BENEFIT_DEFAULTS.length; i++) {
+    const b = MEMBER_BENEFIT_DEFAULTS[i]!;
+    await prisma.memberBenefit.create({
+      data: {
+        section: b.section,
+        title: b.title,
+        description: b.description,
+        body: b.body,
+        href: b.href,
+        iconKey: b.iconKey,
+        hint: b.hint,
+        sortOrder: i,
+        published: true,
       },
     });
   }

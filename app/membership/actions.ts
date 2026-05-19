@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { MEMBERSHIP_FEE_GHS } from "@/lib/membership-application";
+import { checkMembershipEmailAvailable } from "@/lib/membership-email-check";
 import { processMembershipPhotoFile } from "@/lib/membership-photo";
 import { prismaSaveErrorMessage } from "@/lib/prisma-errors";
 
@@ -34,6 +35,11 @@ export async function createMembershipApplication(
     }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return { ok: false, message: "Enter a valid email address." };
+    }
+
+    const emailCheck = await checkMembershipEmailAvailable(email);
+    if (!emailCheck.available) {
+        return { ok: false, message: emailCheck.message ?? "This email is already in use." };
     }
     if (phone && phone.replace(/\D/g, "").length < 9) {
         return { ok: false, message: "Enter a valid phone number or leave the field blank." };

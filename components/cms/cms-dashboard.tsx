@@ -66,6 +66,12 @@ function buildSections(counts: CmsNotificationCounts): DashboardModuleSection[] 
           badge: counts.pendingMembershipPayments,
         },
         {
+          href: "/cms/member-portal",
+          title: "Member portal",
+          desc: "Signed-in member dashboard copy and benefit cards.",
+          icon: "Users",
+        },
+        {
           href: "/cms/registration-inbox",
           title: "Event registrations",
           desc: "Registrations from event pages.",

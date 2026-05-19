@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { cmsCredentials } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard } from "@/components/cms/cms-ui";
-import { handleCmsResponse } from "@/lib/cms-toast";
+import { handleCmsResponse, notifyCmsError, notifyCmsSuccess } from "@/lib/cms-toast";
 import { refreshCmsNotifications } from "@/components/cms/cms-nav-badges";
 import {
   formatGhs,
@@ -39,6 +39,15 @@ type Dashboard = {
 };
 
 type Tab = "verify" | "all" | "approved";
+
+type ApprovalEmailNotice = {
+  sent: boolean;
+  to: string;
+  mode?: string;
+  error?: string;
+  subject?: string;
+  loginUrl?: string;
+};
 
 function StatCard({
   label,
@@ -89,7 +98,7 @@ export function MembershipCmsClient() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [emailPreview, setEmailPreview] = useState<{ to: string; subject: string; body: string } | null>(null);
+  const [emailNotice, setEmailNotice] = useState<ApprovalEmailNotice | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -130,11 +139,22 @@ export function MembershipCmsClient() {
       ...cmsCredentials,
       body: JSON.stringify(body),
     });
-    const data = (await res.json().catch(() => null)) as {
-      emailPreview?: { to: string; subject: string; body: string };
-    } | null;
-    if (await handleCmsResponse(res, "Updated", { setErr })) {
-      if (data?.emailPreview) setEmailPreview(data.emailPreview);
+    const data = (await res.json().catch(() => null)) as { email?: ApprovalEmailNotice } | null;
+    const isApprove = body.action === "approve";
+    if (await handleCmsResponse(res, isApprove ? "Application approved" : "Updated", { setErr })) {
+      if (isApprove && data?.email) {
+        setEmailNotice(data.email);
+        if (data.email.sent) {
+          notifyCmsSuccess(
+            data.email.mode === "logged"
+              ? "Member approved — email logged in server console (dev mode)"
+              : "Member approved — confirmation email sent",
+            data.email.to
+          );
+        } else {
+          notifyCmsError("Member approved, but email was not sent", data.email.error);
+        }
+      }
       await load();
       refreshCmsNotifications();
     }
@@ -164,7 +184,7 @@ export function MembershipCmsClient() {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Membership</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
             Members choose MoMo, bank transfer, card, or USSD at checkout (demo until Paystack is live). Verify each
-            payment, then approve to issue member IDs. Approved members receive an email preview below.
+            payment, then approve to issue a member ID and email the applicant their sign-in link.
           </p>
         </div>
         <CmsButton type="button" variant="ghost" onClick={() => void load()} className="gap-2 self-start">
@@ -410,21 +430,47 @@ export function MembershipCmsClient() {
         </div>
       </CmsCard>
 
-      {emailPreview ? (
-        <CmsCard className="p-6 ring-2 ring-emerald-200/80">
+      {emailNotice ? (
+        <CmsCard
+          className={cn("p-6 ring-2", emailNotice.sent ? "ring-emerald-200/80" : "ring-amber-200/80")}
+        >
           <div className="flex items-start gap-3">
-            <Mail className="h-5 w-5 text-emerald-600" aria-hidden />
+            <Mail
+              className={cn("h-5 w-5 shrink-0", emailNotice.sent ? "text-emerald-600" : "text-amber-600")}
+              aria-hidden
+            />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-slate-900">Email preview (mock send)</p>
-              <p className="mt-1 text-xs text-slate-500">To: {emailPreview.to}</p>
-              <p className="text-xs text-slate-500">Subject: {emailPreview.subject}</p>
-              <pre className="mt-3 max-h-40 overflow-auto rounded-xl bg-slate-900 p-4 text-xs leading-relaxed text-slate-100">
-                {emailPreview.body}
-              </pre>
+              <p className="text-sm font-semibold text-slate-900">
+                {emailNotice.sent
+                  ? emailNotice.mode === "logged"
+                    ? "Email logged (development)"
+                    : "Confirmation email sent"
+                  : "Email not sent"}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">To: {emailNotice.to}</p>
+              {emailNotice.subject ? (
+                <p className="text-xs text-slate-500">Subject: {emailNotice.subject}</p>
+              ) : null}
+              {emailNotice.loginUrl ? (
+                <p className="mt-2 break-all text-xs">
+                  Sign-in link:{" "}
+                  <a
+                    href={emailNotice.loginUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-gcs-primary underline"
+                  >
+                    {emailNotice.loginUrl}
+                  </a>
+                </p>
+              ) : null}
+              {!emailNotice.sent && emailNotice.error ? (
+                <p className="mt-2 text-sm text-amber-900">{emailNotice.error}</p>
+              ) : null}
               <button
                 type="button"
                 className="mt-3 text-xs font-semibold text-gcs-primary hover:underline"
-                onClick={() => setEmailPreview(null)}
+                onClick={() => setEmailNotice(null)}
               >
                 Dismiss
               </button>

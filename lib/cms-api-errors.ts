@@ -20,6 +20,15 @@ export function prismaCmsErrorMessage(err: unknown, context = "save"): string {
     }
   }
   const msg = err instanceof Error ? err.message : String(err);
+  if (/Cannot read properties of undefined \(reading 'findUnique'\)/i.test(msg)) {
+    return "Server is using an outdated Prisma client. Stop the dev server, run npx prisma generate, then start it again.";
+  }
+  if (/Prisma client is missing|outdated after a schema update/i.test(msg)) {
+    return msg;
+  }
+  if (/MemberPortalSettings|MemberBenefit/i.test(msg)) {
+    return "Member portal tables are not set up yet. Run: npx prisma db push — then restart the dev server.";
+  }
   if (/SiteFooterSettings|trademarkLabel|trademarkHref|trademarkNotice/i.test(msg)) {
     return "Footer database is missing trademark fields. Run: npx prisma db execute --file prisma/migrations/20260517180000_add_footer_trademark_fields/migration.sql — then restart the dev server.";
   }
