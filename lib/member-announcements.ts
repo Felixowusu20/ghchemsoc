@@ -1,8 +1,15 @@
-import type { MemberAnnouncement, MemberAnnouncementDelivery } from "@prisma/client";
-import { appBaseUrl } from "@/lib/app-url";
+import type { MemberAnnouncement } from "@prisma/client";
 import { normalizeMembershipEmail } from "@/lib/member-email";
 import { sendMemberAnnouncementEmail } from "@/lib/member-announcement-email";
 import { prisma } from "@/lib/prisma";
+
+export type MemberResourceKind = "conference" | "video" | "summary" | "document" | "link";
+
+export type MemberResourceLink = {
+  label: string;
+  url: string;
+  kind?: MemberResourceKind;
+};
 
 export type MemberAnnouncementDto = {
   id: string;
@@ -16,6 +23,7 @@ export type MemberAnnouncementDto = {
   sentAt: string | null;
   recipientCount: number;
   emailSuccessCount: number;
+  resourceLinks: MemberResourceLink[];
   createdAt: string;
 };
 
@@ -32,6 +40,52 @@ export type MemberNotificationDto = {
   readAt: string | null;
 };
 
+const ALLOWED_RESOURCE_KINDS: ReadonlySet<MemberResourceKind> = new Set([
+  "conference",
+  "video",
+  "summary",
+  "document",
+  "link",
+]);
+
+export function parseResourceLinks(stored: string | null | undefined): MemberResourceLink[] {
+  if (!stored) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stored);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+  const out: MemberResourceLink[] = [];
+  for (const entry of parsed) {
+    if (!entry || typeof entry !== "object") continue;
+    const e = entry as Record<string, unknown>;
+    const label = typeof e.label === "string" ? e.label.trim() : "";
+    const url = typeof e.url === "string" ? e.url.trim() : "";
+    if (!label || !url) continue;
+    const rawKind = typeof e.kind === "string" ? (e.kind as MemberResourceKind) : undefined;
+    const link: MemberResourceLink = { label, url };
+    if (rawKind && ALLOWED_RESOURCE_KINDS.has(rawKind)) {
+      link.kind = rawKind;
+    }
+    out.push(link);
+  }
+  return out;
+}
+
+export function stringifyResourceLinks(links: MemberResourceLink[]): string | null {
+  const cleaned = links
+    .map((link) => ({
+      label: link.label.trim(),
+      url: link.url.trim(),
+      kind: link.kind,
+    }))
+    .filter((link) => link.label.length > 0 && link.url.length > 0);
+  if (cleaned.length === 0) return null;
+  return JSON.stringify(cleaned);
+}
+
 export function mapAnnouncement(row: MemberAnnouncement): MemberAnnouncementDto {
   return {
     id: row.id,
@@ -45,6 +99,7 @@ export function mapAnnouncement(row: MemberAnnouncement): MemberAnnouncementDto 
     sentAt: row.sentAt?.toISOString() ?? null,
     recipientCount: row.recipientCount,
     emailSuccessCount: row.emailSuccessCount,
+    resourceLinks: parseResourceLinks(row.resourceLinks),
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -69,7 +124,7 @@ export async function sendAnnouncementToApprovedMembers(
     orderBy: { fullName: "asc" },
   });
 
-  const portalUrl = `${baseUrl.replace(/\/$/, "")}/membership/account/announcements`;
+  const portalUrl = `${baseUrl.replace(/\/$/, "")}/membership/account/inbox`;
   const errors: string[] = [];
   let emailSuccessCount = 0;
 
@@ -96,6 +151,7 @@ export async function sendAnnouncementToApprovedMembers(
       portalUrl,
       publicHref: announcement.publicHref,
       goLiveAt: announcement.goLiveAt,
+      resourceLinks: parseResourceLinks(announcement.resourceLinks),
     });
 
     if (result.ok) {

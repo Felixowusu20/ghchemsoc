@@ -22,3 +22,29 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ deliveryId: string }> }
+) {
+  const auth = await assertMember(request);
+  if (auth instanceof NextResponse) return auth;
+  const { deliveryId } = await params;
+
+  const existing = await prisma.memberAnnouncementDelivery.findFirst({
+    where: { id: deliveryId, applicationId: auth.application.id },
+  });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Members can only delete a message after they've viewed (read) it.
+  if (!existing.readAt) {
+    return NextResponse.json(
+      { error: "Open the message before deleting it." },
+      { status: 400 }
+    );
+  }
+
+  await prisma.memberAnnouncementDelivery.delete({ where: { id: deliveryId } });
+
+  return NextResponse.json({ ok: true });
+}

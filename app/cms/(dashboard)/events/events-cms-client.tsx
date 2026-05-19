@@ -191,7 +191,6 @@ export function EventsCmsClient() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this event?")) return;
     const res = await fetch(`/api/cms/society-events/${id}`, { method: "DELETE", ...cmsCredentials });
     if (await handleCmsResponse(res, "Event deleted", { setErr })) {
       if (editingId === id) resetEventForm();
@@ -457,7 +456,32 @@ export function EventsCmsClient() {
                   <p className="font-semibold text-slate-900">{r.title}</p>
                   <p className="mt-1 text-sm text-slate-600">{new Date(r.startDate).toLocaleString()} · {r.location}</p>
                 </div>
-                <CmsListActions onEdit={() => startEdit(r)} onDelete={() => void remove(r.id)}>
+                <CmsListActions
+                  onEdit={() => startEdit(r)}
+                  onDelete={() => remove(r.id)}
+                  confirm={{
+                    title: "Delete this event?",
+                    description: (
+                      <>
+                        <span className="font-semibold text-slate-900">&ldquo;{r.title}&rdquo;</span>{" "}
+                        will be removed from the public events page along with its registration form.
+                      </>
+                    ),
+                    highlights: (
+                      <ul className="space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>All registrations attached to this event will be permanently removed.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>This action cannot be undone.</span>
+                        </li>
+                      </ul>
+                    ),
+                    confirmLabel: "Delete event",
+                  }}
+                >
                   <Link
                     href={`/cms/events/${r.id}`}
                     className="inline-flex items-center justify-center rounded-xl border border-gcs-border bg-white px-4 py-2.5 text-sm font-semibold text-gcs-foreground transition-colors hover:bg-neutral-50"

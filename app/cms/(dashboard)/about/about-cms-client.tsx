@@ -114,7 +114,6 @@ export function AboutCmsClient() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this section?")) return;
     const res = await fetch(`/api/cms/about-sections/${id}`, { method: "DELETE", ...cmsCredentials });
     if (await handleCmsResponse(res, "Section deleted", { setErr })) {
       if (editingId === id) resetForm();
@@ -206,7 +205,32 @@ export function AboutCmsClient() {
                     order {r.sortOrder} · {r.published ? "live" : "draft"}
                   </p>
                 </div>
-                <CmsListActions onEdit={() => startEdit(r)} onDelete={() => void remove(r.id)} />
+                <CmsListActions
+                  onEdit={() => startEdit(r)}
+                  onDelete={() => remove(r.id)}
+                  confirm={{
+                    title: "Delete this About section?",
+                    description: (
+                      <>
+                        <span className="font-semibold text-slate-900">&ldquo;{r.title}&rdquo;</span>{" "}
+                        will be removed from the public About page immediately.
+                      </>
+                    ),
+                    highlights: (
+                      <ul className="space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>This action cannot be undone.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>Prefer unpublish? Edit the section and toggle it to draft instead.</span>
+                        </li>
+                      </ul>
+                    ),
+                    confirmLabel: "Delete section",
+                  }}
+                />
               </CmsCard>
             </li>
           ))}

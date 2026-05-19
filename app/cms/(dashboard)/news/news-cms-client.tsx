@@ -126,7 +126,6 @@ export function NewsCmsClient() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this news item?")) return;
     const res = await fetch(`/api/cms/news-items/${id}`, { method: "DELETE", ...cmsCredentials });
     if (await handleCmsResponse(res, "Article deleted", { setErr })) {
       if (editingId === id) resetForm();
@@ -220,7 +219,33 @@ export function NewsCmsClient() {
                     {r.published ? "published" : "draft"} · sort {r.sortOrder}
                   </p>
                 </div>
-                <CmsListActions onEdit={() => startEdit(r)} onDelete={() => void remove(r.id)} />
+                <CmsListActions
+                  onEdit={() => startEdit(r)}
+                  onDelete={() => remove(r.id)}
+                  confirm={{
+                    title: "Delete this news article?",
+                    description: (
+                      <>
+                        The article{" "}
+                        <span className="font-semibold text-slate-900">&ldquo;{r.title}&rdquo;</span>{" "}
+                        ({r.slug}) will be removed from the public news feed immediately.
+                      </>
+                    ),
+                    highlights: (
+                      <ul className="space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>This action cannot be undone.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>Any external links pointing to this article will break.</span>
+                        </li>
+                      </ul>
+                    ),
+                    confirmLabel: "Delete article",
+                  }}
+                />
               </CmsCard>
             </li>
           ))}

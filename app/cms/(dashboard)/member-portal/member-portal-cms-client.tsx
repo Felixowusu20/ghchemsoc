@@ -13,6 +13,7 @@ import {
 } from "@/components/cms/cms-ui";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { readCmsErrorResponse } from "@/lib/cms-api-errors";
 import { handleCmsResponse } from "@/lib/cms-toast";
 import type { MemberBenefitSection } from "@/lib/member-portal";
@@ -68,6 +69,8 @@ export function MemberPortalCmsClient() {
   const [editingBenefitId, setEditingBenefitId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<MemberBenefitSection>("dashboard");
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<BenefitRow | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setErr(null);
@@ -164,10 +167,19 @@ export function MemberPortalCmsClient() {
     }
   }
 
-  async function deleteBenefit(id: string) {
-    if (!window.confirm("Delete this benefit card?")) return;
-    const res = await fetch(`/api/cms/member-benefits/${id}`, { method: "DELETE", ...cmsCredentials });
-    if (await handleCmsResponse(res, "Benefit removed", { setErr })) await load();
+  async function confirmDeleteBenefit() {
+    const row = pendingDelete;
+    if (!row) return;
+    setDeletingId(row.id);
+    const res = await fetch(`/api/cms/member-benefits/${row.id}`, {
+      method: "DELETE",
+      ...cmsCredentials,
+    });
+    setDeletingId(null);
+    if (await handleCmsResponse(res, "Benefit removed", { setErr })) {
+      setPendingDelete(null);
+      await load();
+    }
   }
 
   const sectionBenefits = benefits.filter((b) => b.section === activeSection);
@@ -326,7 +338,7 @@ export function MemberPortalCmsClient() {
                   <p className="mt-1 text-sm text-slate-600">{row.description}</p>
                   {row.href ? <p className="mt-1 font-mono text-xs text-slate-500">{row.href}</p> : null}
                 </div>
-                <CmsListActions onEdit={() => startEditBenefit(row)} onDelete={() => void deleteBenefit(row.id)} />
+                <CmsListActions onEdit={() => startEditBenefit(row)} onDelete={() => setPendingDelete(row)} />
               </li>
             ))
           )}
@@ -438,6 +450,44 @@ export function MemberPortalCmsClient() {
           </div>
         </form>
       </CmsCard>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        variant="danger"
+        title="Delete this benefit card?"
+        description={
+          pendingDelete ? (
+            <>
+              The card{" "}
+              <span className="font-semibold text-slate-900">&ldquo;{pendingDelete.title}&rdquo;</span>{" "}
+              will be removed from the member portal immediately.
+            </>
+          ) : null
+        }
+        highlights={
+          pendingDelete ? (
+            <ul className="space-y-1.5">
+              <li className="flex items-start gap-2">
+                <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                <span>This action cannot be undone.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                <span>
+                  Tip: you can also keep it but uncheck <em>Published on live site</em> to hide it temporarily.
+                </span>
+              </li>
+            </ul>
+          ) : null
+        }
+        confirmLabel="Delete card"
+        cancelLabel="Keep it"
+        loading={deletingId !== null}
+        onConfirm={confirmDeleteBenefit}
+        onCancel={() => {
+          if (deletingId === null) setPendingDelete(null);
+        }}
+      />
     </div>
   );
 }

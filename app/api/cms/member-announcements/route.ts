@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
 import { prismaCmsErrorMessage } from "@/lib/cms-api-errors";
-import { mapAnnouncement, plainTextToHtml } from "@/lib/member-announcements";
+import {
+  mapAnnouncement,
+  plainTextToHtml,
+  stringifyResourceLinks,
+} from "@/lib/member-announcements";
 import { prisma } from "@/lib/prisma";
+
+const resourceLinkSchema = z.object({
+  label: z.string().min(1).max(200),
+  url: z.string().url().max(500),
+  kind: z.enum(["conference", "video", "summary", "document", "link"]).optional(),
+});
 
 const bodySchema = z.object({
   title: z.string().min(1).max(200),
@@ -13,6 +23,7 @@ const bodySchema = z.object({
   bodyHtml: z.string().optional(),
   publicHref: z.string().url().nullable().optional(),
   goLiveAt: z.string().datetime().nullable().optional(),
+  resourceLinks: z.array(resourceLinkSchema).max(20).optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -55,6 +66,7 @@ export async function POST(request: NextRequest) {
 
   const d = parsed.data;
   const bodyHtml = d.bodyHtml?.trim() || plainTextToHtml(d.bodyText);
+  const resourceLinksJson = stringifyResourceLinks(d.resourceLinks ?? []);
 
   try {
     const row = await prisma.memberAnnouncement.create({
@@ -66,6 +78,7 @@ export async function POST(request: NextRequest) {
         bodyHtml,
         publicHref: d.publicHref?.trim() || null,
         goLiveAt: d.goLiveAt ? new Date(d.goLiveAt) : null,
+        resourceLinks: resourceLinksJson,
       },
     });
     return NextResponse.json({ announcement: mapAnnouncement(row) });

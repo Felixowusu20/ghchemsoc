@@ -12,6 +12,7 @@ import {
   Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { useMemberPortal } from "@/components/membership/member-portal-context";
 import type { MemberLibraryItemDto, MemberLibraryItemType } from "@/lib/member-library";
@@ -40,6 +41,8 @@ export function MemberLibraryPage() {
   const [filter, setFilter] = useState<"all" | MemberLibraryItemType>("all");
   const [addMode, setAddMode] = useState<AddMode>(null);
   const [saving, setSaving] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<MemberLibraryItemDto | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,15 +68,25 @@ export function MemberLibraryPage() {
     return items.filter((i) => i.type === filter);
   }, [items, filter]);
 
-  async function deleteItem(id: string) {
-    if (!window.confirm("Remove this item from your library?")) return;
-    const res = await fetch(`/api/member/library/${id}`, { method: "DELETE", credentials: "include" });
-    if (!res.ok) {
-      gooeyToast.error("Could not delete", { preset: "smooth", spring: false });
-      return;
+  async function confirmDeleteItem() {
+    const item = pendingDelete;
+    if (!item) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/member/library/${item.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        gooeyToast.error("Could not delete", { preset: "smooth", spring: false });
+        return;
+      }
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+      setPendingDelete(null);
+      gooeyToast.success("Removed", { preset: "smooth", spring: false });
+    } finally {
+      setDeleting(false);
     }
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    gooeyToast.success("Removed", { preset: "smooth", spring: false });
   }
 
   async function submitLinkOrNote(e: React.FormEvent<HTMLFormElement>) {
@@ -307,7 +320,7 @@ export function MemberLibraryPage() {
                     type="button"
                     className="rounded-lg p-2 text-gcs-muted-text hover:bg-neutral-100 hover:text-red-600"
                     aria-label="Delete"
-                    onClick={() => void deleteItem(item.id)}
+                    onClick={() => setPendingDelete(item)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -345,6 +358,43 @@ export function MemberLibraryPage() {
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        variant="danger"
+        title="Remove this from your library?"
+        description={
+          pendingDelete ? (
+            <>
+              <span className="font-semibold text-slate-900">&ldquo;{pendingDelete.title}&rdquo;</span>{" "}
+              will be permanently deleted from your private library.
+            </>
+          ) : null
+        }
+        highlights={
+          pendingDelete ? (
+            <ul className="space-y-1.5">
+              <li className="flex items-start gap-2">
+                <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                <span>This action cannot be undone.</span>
+              </li>
+              {pendingDelete.type === "file" ? (
+                <li className="flex items-start gap-2">
+                  <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                  <span>The uploaded file will also be removed from storage.</span>
+                </li>
+              ) : null}
+            </ul>
+          ) : null
+        }
+        confirmLabel="Remove item"
+        cancelLabel="Keep it"
+        loading={deleting}
+        onConfirm={confirmDeleteItem}
+        onCancel={() => {
+          if (!deleting) setPendingDelete(null);
+        }}
+      />
     </div>
   );
 }
