@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
-import { prisma } from "@/lib/prisma";
+import { appBaseUrl } from "@/lib/app-url";
 import {
   generateMembershipMemberId,
   serializeMembershipApplication,
 } from "@/lib/membership-application";
+import { sendMembershipApprovalEmail } from "@/lib/membership-approval-email";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const denied = await assertAdmin(request);
@@ -137,26 +139,37 @@ export async function PATCH(request: NextRequest) {
 
   const memberId = generateMembershipMemberId();
   const now = new Date();
-  const loginUrl = `/login?role=member&memberId=${encodeURIComponent(memberId)}`;
 
   const row = await prisma.membershipApplication.update({
     where: { id: existing.id },
     data: {
       status: "approved",
       paymentStatus: "verified",
-      memberId,
+      memberId: memberId.trim(),
+      email: existing.email.trim().toLowerCase(),
       approvedAt: now,
       adminNote: data.adminNote ?? null,
       read: true,
     },
   });
 
+  const emailOutcome = await sendMembershipApprovalEmail({
+    baseUrl: appBaseUrl(request),
+    fullName: row.fullName,
+    email: row.email,
+    memberId,
+    applicationId: row.id,
+  });
+
   return NextResponse.json({
     application: serializeMembershipApplication(row),
-    emailPreview: {
+    email: {
+      sent: emailOutcome.sent,
       to: row.email,
-      subject: "Your Ghana Chemical Society membership ID",
-      body: `Dear ${row.fullName},\n\nYour membership payment has been verified. Your member ID is ${memberId}.\n\nSign in here: ${loginUrl}\n\nGhana Chemical Society`,
+      mode: emailOutcome.sent ? emailOutcome.mode : undefined,
+      error: !emailOutcome.sent ? emailOutcome.error : undefined,
+      subject: emailOutcome.preview?.subject,
+      loginUrl: emailOutcome.preview?.loginUrl,
     },
   });
 }

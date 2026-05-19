@@ -547,9 +547,131 @@ model MembershipApplication {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  libraryItems              MemberLibraryItem[]
+  announcementDeliveries    MemberAnnouncementDelivery[]
+
   @@index([status])
   @@index([paymentStatus])
   @@index([read])
   @@index([createdAt])
   @@index([email])
+}
+
+/// Private link, note, or file owned by one approved member (scoped to application).
+model MemberLibraryItem {
+  id            String @id @default(cuid())
+  applicationId String
+  application   MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  /// link | note | file
+  type String
+
+  title String
+  /// Note body, link description, or file caption
+  body  String? @db.Text
+  /// External URL (link) or file download URL
+  url   String?
+  filePublicId String?
+  fileMime     String?
+  fileBytes    Int?
+
+  /// Comma-separated tags for filtering
+  tags      String @default("")
+  sortOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([applicationId])
+  @@index([type])
+  @@index([sortOrder])
+}
+
+/// Pre-public bulletin sent to approved members (email + portal inbox).
+model MemberAnnouncement {
+  id String @id @default(cuid())
+
+  title       String
+  subject     String
+  preview     String  @db.Text
+  bodyHtml    String  @db.Text
+  bodyText    String  @db.Text
+  publicHref  String?
+  goLiveAt    DateTime?
+
+  sentAt            DateTime?
+  recipientCount    Int @default(0)
+  emailSuccessCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliveries MemberAnnouncementDelivery[]
+
+  @@index([sentAt])
+  @@index([createdAt])
+}
+
+model MemberAnnouncementDelivery {
+  id             String @id @default(cuid())
+  announcementId String
+  applicationId  String
+
+  announcement MemberAnnouncement      @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  application  MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  emailSent  Boolean @default(false)
+  emailError String?
+
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([announcementId, applicationId])
+  @@index([applicationId])
+  @@index([readAt])
+}
+
+//
+// =======================
+// MEMBER PORTAL (CMS-MANAGED)
+// =======================
+//
+
+model MemberPortalSettings {
+  id String @id @default("member_portal")
+
+  dashboardEyebrow  String @default("Member area")
+  dashboardTitle    String @default("Your GCS portfolio")
+  dashboardLead     String @db.Text
+
+  benefitsTitle String @default("Membership benefits")
+  benefitsLead  String @db.Text
+
+  resourcesTitle String @default("Members-only resources")
+  resourcesLead  String @db.Text
+
+  updatedAt DateTime @updatedAt
+}
+
+model MemberBenefit {
+  id        String  @id @default(cuid())
+  published Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  /// dashboard | benefits | resources
+  section     String @default("resources")
+  title       String
+  description String @db.Text
+  body        String? @db.Text
+  href        String?
+  iconKey     String @default("book")
+  hint        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([section])
+  @@index([sortOrder])
 }

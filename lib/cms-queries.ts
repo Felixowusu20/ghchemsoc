@@ -296,3 +296,5 @@ export async function getPartnershipCardsForCms() {
     include: { media: true },
   });
 }
+
+export { getMemberPortalForPublic } from "@/lib/member-portal-queries";

@@ -6,8 +6,17 @@ if (!process.env.DATABASE_URL) {
   config();
 }
 
-/** Bump when Prisma schema changes so dev hot-reload recycles a stale global client. */
-const PRISMA_DEV_SCHEMA_VERSION = "2026-05-site-footer-trademark";
+/** Bump when Prisma schema changes so hot-reload recycles a stale global client. */
+const PRISMA_DEV_SCHEMA_VERSION = "2026-05-member-library";
+
+/** Delegates that must exist on a fresh client (schema additions). */
+const REQUIRED_DELEGATES = [
+  "homepageExploreSettings",
+  "siteFooterSettings",
+  "memberPortalSettings",
+  "memberBenefit",
+  "memberLibraryItem",
+] as const;
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -22,19 +31,18 @@ function createPrismaClient() {
 }
 
 function clientMissingDelegates(client: PrismaClient): boolean {
-  const d = client as unknown as {
-    homepageExploreSettings?: unknown;
-    siteFooterSettings?: unknown;
-  };
-  return typeof d.homepageExploreSettings === "undefined" || typeof d.siteFooterSettings === "undefined";
+  const d = client as unknown as Record<string, unknown>;
+  return REQUIRED_DELEGATES.some((key) => typeof d[key] === "undefined");
 }
 
-function recycleStaleDevPrisma() {
-  if (process.env.NODE_ENV === "production") return;
+function recycleStalePrisma() {
   const cached = globalForPrisma.prisma;
   if (!cached) return;
 
-  const versionStale = globalForPrisma.prismaSchemaVersion !== PRISMA_DEV_SCHEMA_VERSION;
+  const versionStale =
+    process.env.NODE_ENV !== "production" &&
+    globalForPrisma.prismaSchemaVersion !== PRISMA_DEV_SCHEMA_VERSION;
+
   if (versionStale || clientMissingDelegates(cached)) {
     globalForPrisma.prisma = undefined;
     globalForPrisma.prismaSchemaVersion = undefined;
@@ -48,11 +56,27 @@ export function resetPrismaClient() {
   globalForPrisma.prismaConnectPromise = undefined;
 }
 
+export function prismaDelegateMissingMessage(delegate: string): string {
+  return (
+    `Prisma client is missing "${delegate}" (outdated after a schema update). ` +
+    `Stop the dev server, run npx prisma generate, then start it again.`
+  );
+}
+
 function ensurePrismaClient(): PrismaClient {
-  recycleStaleDevPrisma();
+  recycleStalePrisma();
 
   if (!globalForPrisma.prisma || clientMissingDelegates(globalForPrisma.prisma)) {
-    globalForPrisma.prisma = createPrismaClient();
+    const client = createPrismaClient();
+    if (clientMissingDelegates(client)) {
+      const missing = REQUIRED_DELEGATES.filter(
+        (key) => typeof (client as unknown as Record<string, unknown>)[key] === "undefined"
+      );
+      throw new Error(
+        `Generated Prisma client is missing: ${missing.join(", ")}. Run npx prisma generate in the project folder.`
+      );
+    }
+    globalForPrisma.prisma = client;
     globalForPrisma.prismaConnectPromise = undefined;
     if (process.env.NODE_ENV !== "production") {
       globalForPrisma.prismaSchemaVersion = PRISMA_DEV_SCHEMA_VERSION;
@@ -60,6 +84,10 @@ function ensurePrismaClient(): PrismaClient {
   }
 
   return globalForPrisma.prisma;
+}
+
+function isModelDelegateProp(prop: string | symbol): prop is string {
+  return typeof prop === "string" && prop.length > 0 && prop[0] !== "$" && prop[0] !== "_";
 }
 
 /** Await before queries — avoids "Engine is not yet connected" after hot reload. */
@@ -80,8 +108,18 @@ export async function prismaReady(): Promise<boolean> {
 
 export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
   get(_target, prop) {
-    const client = ensurePrismaClient();
-    const value = Reflect.get(client, prop, client);
+    let client = ensurePrismaClient();
+    let value = Reflect.get(client, prop, client);
+
+    if (value === undefined && isModelDelegateProp(prop)) {
+      resetPrismaClient();
+      client = ensurePrismaClient();
+      value = Reflect.get(client, prop, client);
+      if (value === undefined && (REQUIRED_DELEGATES as readonly string[]).includes(prop)) {
+        throw new Error(prismaDelegateMissingMessage(prop));
+      }
+    }
+
     if (typeof value === "function") {
       return (value as (...args: unknown[]) => unknown).bind(client);
     }

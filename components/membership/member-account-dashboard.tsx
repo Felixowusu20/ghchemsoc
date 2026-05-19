@@ -192,7 +192,7 @@ export function MemberAccountDashboard() {
                 <h1 className="mt-6 text-xl font-semibold tracking-tight text-gcs-foreground">Sign in to view your portfolio</h1>
                 <p className="mt-3 text-sm leading-relaxed text-gcs-muted-text">
                     We found your membership application on this browser. Enter the same email and your GCS member ID on
-                    the member sign-in page—we verify them before showing resources and payment history.
+                    the member sign in page we verify them before showing resources and payment history.
                 </p>
                 <p className="mt-4 font-mono text-sm font-medium text-gcs-foreground">{displayMemberId}</p>
                 <div className="mt-8 flex justify-center">

@@ -60,8 +60,9 @@ export const CLOUDINARY_SETUP_HINT =
 export async function uploadBufferToCloudinary(
   buffer: Buffer,
   folder: string,
-  publicId?: string
-): Promise<{ secure_url: string; public_id: string }> {
+  publicId?: string,
+  resourceType: "image" | "raw" = "image"
+): Promise<{ secure_url: string; public_id: string; resource_type: "image" | "raw" }> {
   if (!configureCloudinaryFromEnv()) {
     throw new Error("CLOUDINARY_NOT_CONFIGURED");
   }
@@ -73,11 +74,16 @@ export async function uploadBufferToCloudinary(
       {
         folder: `gcs-cms/${safeFolder}`,
         ...(publicId ? { public_id: publicId } : {}),
-        resource_type: "image",
+        resource_type: resourceType,
       },
       (err, result) => {
         if (err || !result) reject(err ?? new Error("Cloudinary upload failed"));
-        else resolve({ secure_url: result.secure_url, public_id: result.public_id });
+        else
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+            resource_type: resourceType,
+          });
       }
     );
 
@@ -85,9 +91,15 @@ export async function uploadBufferToCloudinary(
   });
 }
 
-export async function deleteCloudinaryAsset(publicId: string) {
+/** Member library: images as image, PDFs and other docs as raw. */
+export async function uploadMemberLibraryFile(buffer: Buffer, mime: string) {
+  const resourceType: "image" | "raw" = mime.startsWith("image/") ? "image" : "raw";
+  return uploadBufferToCloudinary(buffer, "member-library", undefined, resourceType);
+}
+
+export async function deleteCloudinaryAsset(publicId: string, resourceType: "image" | "raw" = "image") {
   if (!configureCloudinaryFromEnv()) {
     throw new Error("CLOUDINARY_NOT_CONFIGURED");
   }
-  await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+  await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 }
