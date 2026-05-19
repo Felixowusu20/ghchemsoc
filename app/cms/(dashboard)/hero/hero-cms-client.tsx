@@ -169,7 +169,6 @@ export function HeroCmsClient() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this slide?")) return;
     const res = await fetch(`/api/cms/hero-slides/${id}`, { method: "DELETE", ...cmsCredentials });
     if (await handleCmsResponse(res, "Slide deleted", { setErr, failureTitle: "Delete failed" })) {
       if (editingId === id) resetForm();
@@ -310,7 +309,35 @@ export function HeroCmsClient() {
                     Order {s.sortOrder} · {s.published ? "Live" : "Draft"}
                   </p>
                 </div>
-                <CmsListActions onEdit={() => startEdit(s)} onDelete={() => void remove(s.id)} />
+                <CmsListActions
+                  onEdit={() => startEdit(s)}
+                  onDelete={() => remove(s.id)}
+                  confirm={{
+                    title: "Delete this hero slide?",
+                    description: (
+                      <>
+                        The slide{" "}
+                        <span className="font-semibold text-slate-900">
+                          &ldquo;{s.headlineLine1} — {s.headlineLine2}&rdquo;
+                        </span>{" "}
+                        will be removed from the homepage carousel.
+                      </>
+                    ),
+                    highlights: (
+                      <ul className="space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>This action cannot be undone.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>Tip: uncheck <em>Published</em> instead to hide it without losing the content.</span>
+                        </li>
+                      </ul>
+                    ),
+                    confirmLabel: "Delete slide",
+                  }}
+                />
               </CmsCard>
             </li>
           ))}

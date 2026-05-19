@@ -146,7 +146,6 @@ export function JoinCmsClient() {
   }
 
   async function removeStep(id: string) {
-    if (!confirm("Delete this step?")) return;
     const res = await fetch(`/api/cms/join-steps/${id}`, { method: "DELETE", ...cmsCredentials });
     if (await handleCmsResponse(res, "Step deleted", { setErr })) {
       if (editingStepId === id) resetStepForm();
@@ -267,7 +266,33 @@ export function JoinCmsClient() {
                   <p className="font-semibold text-slate-900">{s.title}</p>
                   <p className="line-clamp-2 text-sm text-slate-600">{s.description}</p>
                 </div>
-                <CmsListActions onEdit={() => startEditStep(s)} onDelete={() => void removeStep(s.id)} />
+                <CmsListActions
+                  onEdit={() => startEditStep(s)}
+                  onDelete={() => removeStep(s.id)}
+                  confirm={{
+                    title: "Delete this join step?",
+                    description: (
+                      <>
+                        The step{" "}
+                        <span className="font-semibold text-slate-900">&ldquo;{s.title}&rdquo;</span>{" "}
+                        ({s.stepKey}) will be removed from the membership onboarding flow.
+                      </>
+                    ),
+                    highlights: (
+                      <ul className="space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>This action cannot be undone.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>Remaining steps keep their order — re-number them after deletion if needed.</span>
+                        </li>
+                      </ul>
+                    ),
+                    confirmLabel: "Delete step",
+                  }}
+                />
               </CmsCard>
             </li>
           ))}

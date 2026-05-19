@@ -599,6 +599,10 @@ model MemberAnnouncement {
   publicHref  String?
   goLiveAt    DateTime?
 
+  // JSON-encoded array of `{ label, url, kind? }` resource attachments
+  // (e.g. conference recordings, slide decks, videos, summaries). Members only.
+  resourceLinks String? @db.Text
+
   sentAt            DateTime?
   recipientCount    Int @default(0)
   emailSuccessCount Int @default(0)

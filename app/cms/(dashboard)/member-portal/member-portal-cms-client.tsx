@@ -165,9 +165,13 @@ export function MemberPortalCmsClient() {
   }
 
   async function deleteBenefit(id: string) {
-    if (!window.confirm("Delete this benefit card?")) return;
-    const res = await fetch(`/api/cms/member-benefits/${id}`, { method: "DELETE", ...cmsCredentials });
-    if (await handleCmsResponse(res, "Benefit removed", { setErr })) await load();
+    const res = await fetch(`/api/cms/member-benefits/${id}`, {
+      method: "DELETE",
+      ...cmsCredentials,
+    });
+    if (await handleCmsResponse(res, "Benefit removed", { setErr })) {
+      await load();
+    }
   }
 
   const sectionBenefits = benefits.filter((b) => b.section === activeSection);
@@ -326,7 +330,36 @@ export function MemberPortalCmsClient() {
                   <p className="mt-1 text-sm text-slate-600">{row.description}</p>
                   {row.href ? <p className="mt-1 font-mono text-xs text-slate-500">{row.href}</p> : null}
                 </div>
-                <CmsListActions onEdit={() => startEditBenefit(row)} onDelete={() => void deleteBenefit(row.id)} />
+                <CmsListActions
+                  onEdit={() => startEditBenefit(row)}
+                  onDelete={() => deleteBenefit(row.id)}
+                  confirm={{
+                    title: "Delete this benefit card?",
+                    description: (
+                      <>
+                        The card{" "}
+                        <span className="font-semibold text-slate-900">&ldquo;{row.title}&rdquo;</span>{" "}
+                        will be removed from the member portal immediately.
+                      </>
+                    ),
+                    highlights: (
+                      <ul className="space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>This action cannot be undone.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                          <span>
+                            Tip: you can also keep it but uncheck <em>Published on live site</em> to hide it
+                            temporarily.
+                          </span>
+                        </li>
+                      </ul>
+                    ),
+                    confirmLabel: "Delete card",
+                  }}
+                />
               </li>
             ))
           )}

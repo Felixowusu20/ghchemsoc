@@ -18,6 +18,7 @@ import {
   Handshake,
   PanelBottom,
   UserCircle,
+  Megaphone,
   Menu,
   X,
   ExternalLink,
@@ -33,22 +34,55 @@ type NavItem = {
   badge?: "contact" | "registrations" | "membership" | "total";
 };
 
-const nav: NavItem[] = [
-  { href: "/cms", label: "Overview", icon: LayoutDashboard, badge: "total" },
-  { href: "/cms/homepage-explore", label: "Homepage · mission", icon: House },
-  { href: "/cms/hero", label: "Hero", icon: ImageIcon },
-  { href: "/cms/about", label: "About", icon: FileText },
-  { href: "/cms/join", label: "Join / membership", icon: Users },
-  { href: "/cms/partnerships", label: "Partnerships", icon: Handshake },
-  { href: "/cms/news", label: "News", icon: Newspaper },
-  { href: "/cms/publications", label: "Publications", icon: BookOpen },
-  { href: "/cms/events", label: "Events", icon: Calendar },
-  { href: "/cms/membership", label: "Membership", icon: Wallet, badge: "membership" },
-  { href: "/cms/member-portal", label: "Member portal", icon: UserCircle },
-  { href: "/cms/registration-inbox", label: "Registration inbox", icon: ClipboardList, badge: "registrations" },
-  { href: "/cms/site-footer", label: "Site footer", icon: PanelBottom },
-  { href: "/cms/contact", label: "Contact page", icon: MessageCircle },
-  { href: "/cms/contact-inquiries", label: "Contact messages", icon: Inbox, badge: "contact" },
+type NavGroup = {
+  id: string;
+  label: string;
+  description?: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    id: "overview",
+    label: "Overview",
+    items: [{ href: "/cms", label: "Overview", icon: LayoutDashboard, badge: "total" }],
+  },
+  {
+    id: "site",
+    label: "Public site",
+    description: "Pages visible to everyone.",
+    items: [
+      { href: "/cms/homepage-explore", label: "Homepage · mission", icon: House },
+      { href: "/cms/hero", label: "Hero", icon: ImageIcon },
+      { href: "/cms/about", label: "About", icon: FileText },
+      { href: "/cms/join", label: "Join / membership", icon: Users },
+      { href: "/cms/partnerships", label: "Partnerships", icon: Handshake },
+      { href: "/cms/news", label: "News", icon: Newspaper },
+      { href: "/cms/publications", label: "Publications", icon: BookOpen },
+      { href: "/cms/events", label: "Events", icon: Calendar },
+      { href: "/cms/site-footer", label: "Site footer", icon: PanelBottom },
+      { href: "/cms/contact", label: "Contact page", icon: MessageCircle },
+    ],
+  },
+  {
+    id: "members",
+    label: "Members & community",
+    description: "Approvals, portal copy, and resources shared only with registered members.",
+    items: [
+      { href: "/cms/membership", label: "Membership approvals", icon: Wallet, badge: "membership" },
+      { href: "/cms/member-announcements", label: "Member announcements", icon: Megaphone },
+      { href: "/cms/member-portal", label: "Member portal", icon: UserCircle },
+    ],
+  },
+  {
+    id: "inbox",
+    label: "Inboxes",
+    description: "Messages and registrations that need a reply.",
+    items: [
+      { href: "/cms/registration-inbox", label: "Event registrations", icon: ClipboardList, badge: "registrations" },
+      { href: "/cms/contact-inquiries", label: "Contact messages", icon: Inbox, badge: "contact" },
+    ],
+  },
 ];
 
 function isNavActive(href: string, pathname: string) {
@@ -101,13 +135,33 @@ export function CmsSidebar() {
           <p className="mt-1 text-lg font-semibold tracking-tight text-gcs-foreground">Admin</p>
           <p className="mt-1 text-xs leading-snug text-gcs-muted-text">Marketing &amp; content</p>
         </div>
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1">
-          {nav.map(({ href, label, icon: Icon, badge }) => (
-            <Link key={href} href={href} className={linkCls(href)} onClick={() => setOpen(false)}>
-              <Icon className={`h-4 w-4 shrink-0 ${isNavActive(href, pathname) ? "text-gcs-primary" : "text-gcs-muted-text"}`} />
-              <span className="min-w-0 flex-1 truncate">{label}</span>
-              <CmsNavBadge count={badgeCount(badge, counts)} />
-            </Link>
+        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-1">
+          {navGroups.map((group, groupIndex) => (
+            <div key={group.id} className={groupIndex === 0 ? "" : "border-t border-gcs-border/40 pt-3"}>
+              {group.id === "overview" ? null : (
+                <div className="px-3 pb-2">
+                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-gcs-muted-text/80">
+                    {group.label}
+                  </p>
+                  {group.description ? (
+                    <p className="mt-0.5 text-[0.7rem] leading-snug text-gcs-muted-text/70">{group.description}</p>
+                  ) : null}
+                </div>
+              )}
+              <div className="flex flex-col gap-0.5">
+                {group.items.map(({ href, label, icon: Icon, badge }) => (
+                  <Link key={href} href={href} className={linkCls(href)} onClick={() => setOpen(false)}>
+                    <Icon
+                      className={`h-4 w-4 shrink-0 ${
+                        isNavActive(href, pathname) ? "text-gcs-primary" : "text-gcs-muted-text"
+                      }`}
+                    />
+                    <span className="min-w-0 flex-1 truncate">{label}</span>
+                    <CmsNavBadge count={badgeCount(badge, counts)} />
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
         <div className="mt-auto space-y-2 border-t border-gcs-border/60 pt-4">
