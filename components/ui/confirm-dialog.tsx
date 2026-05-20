@@ -20,6 +20,8 @@ export type ConfirmDialogProps = {
   cancelLabel?: string;
   variant?: ConfirmDialogVariant;
   loading?: boolean;
+  /** When true, the confirm button stays disabled (e.g. type-to-confirm flows). */
+  confirmDisabled?: boolean;
   icon?: ReactNode;
   /** Show "Permanent action" / "Confirm" badge above the title. Defaults to true. */
   showBadge?: boolean;
@@ -66,6 +68,7 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   variant = "danger",
   loading = false,
+  confirmDisabled = false,
   icon,
   showBadge = true,
 }: ConfirmDialogProps) {
@@ -198,7 +201,7 @@ export function ConfirmDialog({
                 <button
                   type="button"
                   onClick={() => void onConfirm()}
-                  disabled={loading}
+                  disabled={loading || confirmDisabled}
                   autoFocus
                   className={cn(
                     "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition focus:outline-none focus-visible:ring-2 disabled:opacity-60",

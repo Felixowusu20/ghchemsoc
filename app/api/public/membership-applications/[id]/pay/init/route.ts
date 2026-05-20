@@ -5,9 +5,12 @@ import { membershipPayBodySchema, payerPhoneForStorage } from "@/lib/membership-
 import { paystackChannels, usesPaystack } from "@/lib/membership-payment-methods";
 import { prismaSaveErrorMessage } from "@/lib/prisma-errors";
 import {
+  createPaystackBankTransferCharge,
   generatePaystackReference,
   initializePaystackTransaction,
   isPaystackConfigured,
+  paystackConfigError,
+  paystackMode,
   paystackPublicKey,
 } from "@/lib/paystack";
 
@@ -21,7 +24,7 @@ export async function POST(
     return NextResponse.json(
       {
         ok: false,
-        error: "Paystack is not configured. Add NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY and PAYSTACK_SECRET_KEY.",
+        error: paystackConfigError() ?? "Paystack is not configured.",
       },
       { status: 503 }
     );
@@ -43,7 +46,7 @@ export async function POST(
   const { paymentMethod, paymentNote } = parsed.data;
   if (!usesPaystack(paymentMethod)) {
     return NextResponse.json(
-      { ok: false, error: "Use the bank transfer flow for this payment method." },
+      { ok: false, error: "This payment method is not supported." },
       { status: 400 }
     );
   }
@@ -65,6 +68,42 @@ export async function POST(
     }
 
     const reference = generatePaystackReference(id);
+
+    await prisma.membershipApplication.update({
+      where: { id },
+      data: {
+        paymentMethod,
+        paystackReference: reference,
+        payerPhone: payerPhoneStored,
+        paymentNote: paymentNote?.trim() || null,
+      },
+    });
+
+    if (paymentMethod === "bank_transfer") {
+      const charge = await createPaystackBankTransferCharge({
+        email: existing.email,
+        amountGhs: existing.amountGhs,
+        reference,
+        applicationId: id,
+        paymentMethod,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        flow: "bank_transfer",
+        reference: charge.reference,
+        paymentMethod,
+        mode: paystackMode(),
+        amountPesewas: Math.round(existing.amountGhs * 100),
+        currency: "GHS",
+        accountName: charge.account_name,
+        accountNumber: charge.account_number,
+        bankName: charge.bank?.name ?? "Paystack",
+        accountExpiresAt: charge.account_expires_at,
+        displayText: charge.display_text,
+      });
+    }
+
     const base = appBaseUrl(request);
     const callbackUrl = `${base}/membership/pending?applicationId=${encodeURIComponent(id)}`;
 
@@ -78,20 +117,11 @@ export async function POST(
       payerPhone: payerPhoneStored,
     });
 
-    await prisma.membershipApplication.update({
-      where: { id },
-      data: {
-        paymentMethod,
-        paystackReference: reference,
-        payerPhone: payerPhoneStored,
-        paymentNote: paymentNote?.trim() || null,
-      },
-    });
-
     const publicKey = paystackPublicKey()!;
 
     return NextResponse.json({
       ok: true,
+      flow: "popup",
       reference,
       publicKey,
       email: existing.email,
@@ -99,6 +129,7 @@ export async function POST(
       currency: "GHS",
       channels: paystackChannels(paymentMethod),
       paymentMethod,
+      mode: paystackMode(),
     });
   } catch (e) {
     console.error("[membership-pay-init]", e);

@@ -1,6 +1,7 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma, prismaReady } from "@/lib/prisma";
+import { databaseUnavailableMessage } from "@/lib/db-fallback";
 import { MEMBERSHIP_FEE_GHS } from "@/lib/membership-application";
 import { checkMembershipEmailAvailable } from "@/lib/membership-email-check";
 import { processMembershipPhotoFile } from "@/lib/membership-photo";
@@ -67,6 +68,10 @@ export async function createMembershipApplication(
             const message = e instanceof Error ? e.message : "Could not upload your photo.";
             return { ok: false, message };
         }
+    }
+
+    if (!(await prismaReady())) {
+        return { ok: false, message: databaseUnavailableMessage() };
     }
 
     try {

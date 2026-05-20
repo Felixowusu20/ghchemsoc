@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Atom, Building2, Check, Copy, FlaskConical, LogOut } from "lucide-react";
+import { Building2, Check, Copy, FlaskConical, LogOut } from "lucide-react";
+import { MemberAnnualStatusBadge } from "@/components/membership/member-annual-status-badge";
 import { Button } from "@/components/ui/button";
 import { useMemberPortal } from "@/components/membership/member-portal-context";
 import {
@@ -96,10 +97,7 @@ export function MemberProfileHero() {
                   {idCopied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                   {idCopied ? "Copied" : "Copy ID"}
                 </button>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-950">
-                  <Atom className="h-3.5 w-3.5" aria-hidden />
-                  GCS member
-                </span>
+                <MemberAnnualStatusBadge profile={profile} variant="pill" />
               </div>
             </div>
           </div>

@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Building2,
+  CheckCircle2,
+  Copy,
   CreditCard,
-  Hash,
   Loader2,
   Lock,
   Smartphone,
@@ -14,13 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatGhs } from "@/lib/membership-application";
 import {
-  GCS_MEMBERSHIP_BANK_DETAILS,
   membershipPaymentMethodLabel,
   PAYMENT_METHOD_GROUPS,
   paystackChannels,
-  requiresPaymentNote,
   requiresPayerPhone,
-  usesPaystack,
   type MembershipPaymentMethodId,
   ussdHintForMethod,
 } from "@/lib/membership-payment-methods";
@@ -37,6 +35,7 @@ type Props = {
 
 type PayInitResponse = {
   ok?: boolean;
+  flow?: "popup" | "bank_transfer";
   reference?: string;
   publicKey?: string;
   email?: string;
@@ -44,7 +43,22 @@ type PayInitResponse = {
   currency?: string;
   channels?: string[];
   paymentMethod?: string;
+  mode?: "test" | "live" | null;
+  accountName?: string;
+  accountNumber?: string;
+  bankName?: string;
+  accountExpiresAt?: string;
+  displayText?: string;
   error?: string;
+};
+
+type BankTransferDetails = {
+  reference: string;
+  accountName: string;
+  accountNumber: string;
+  bankName: string;
+  accountExpiresAt: string;
+  displayText?: string;
 };
 
 async function parseJsonResponse<T>(res: Response): Promise<T | null> {
@@ -64,13 +78,25 @@ export function MembershipPaymentModal({
   onClose,
   onSuccess,
 }: Props) {
-  const [step, setStep] = useState<"choose" | "confirm">("choose");
+  const [step, setStep] = useState<"choose" | "confirm" | "bank_transfer">("choose");
   const [method, setMethod] = useState<MembershipPaymentMethodId | null>(null);
   const [payerPhone, setPayerPhone] = useState("");
-  const [paymentNote, setPaymentNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [paystackReady, setPaystackReady] = useState(false);
+  const [paystackMode, setPaystackMode] = useState<"test" | "live" | null>(null);
+  const [bankTransfer, setBankTransfer] = useState<BankTransferDetails | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [polling, setPolling] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    setPolling(false);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -87,15 +113,22 @@ export function MembershipPaymentModal({
     };
   }, [open]);
 
+  useEffect(() => {
+    return () => stopPolling();
+  }, [stopPolling]);
+
   const resetAndClose = useCallback(() => {
     if (busy) return;
+    stopPolling();
     setStep("choose");
     setMethod(null);
     setPayerPhone("");
-    setPaymentNote("");
     setErr(null);
+    setPaystackMode(null);
+    setBankTransfer(null);
+    setCopied(false);
     onClose();
-  }, [busy, onClose]);
+  }, [busy, onClose, stopPolling]);
 
   if (!open) return null;
 
@@ -103,6 +136,7 @@ export function MembershipPaymentModal({
     setMethod(id);
     setStep("confirm");
     setErr(null);
+    setBankTransfer(null);
   }
 
   async function verifyPaystackPayment(reference: string, paymentMethod: string) {
@@ -122,69 +156,59 @@ export function MembershipPaymentModal({
       paymentMethod?: string;
     }>(res);
 
+    if (res.status === 402) {
+      return { ok: false as const, pending: true };
+    }
+
     if (!res.ok || !body?.ok) {
       throw new Error(body?.error ?? "Payment verification failed.");
     }
 
-    onSuccess({
+    return {
+      ok: true as const,
+      pending: false,
       paystackReference: body.paystackReference ?? reference,
       message: body.message ?? "Payment received.",
       paymentMethod: body.paymentMethod ?? paymentMethod,
-    });
+    };
   }
 
-  async function submitBankTransfer() {
-    const res = await fetch(`/api/public/membership-applications/${applicationId}/pay`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        paymentMethod: method,
-        paymentNote: paymentNote.trim(),
-      }),
-    });
-    const body = await parseJsonResponse<{
-      ok?: boolean;
-      paystackReference?: string;
-      message?: string;
-      error?: string;
-      paymentMethod?: string;
-    }>(res);
+  function startBankTransferPolling(reference: string, paymentMethod: string) {
+    stopPolling();
+    setPolling(true);
 
-    if (!res.ok || !body?.ok) {
-      throw new Error(body?.error ?? "Payment could not be recorded.");
-    }
-
-    onSuccess({
-      paystackReference: body.paystackReference ?? "",
-      message: body.message ?? "Transfer details submitted.",
-      paymentMethod: body.paymentMethod ?? method!,
-    });
-  }
-
-  async function submitPaystackPayment() {
-    if (!method || !usesPaystack(method)) return;
-
-    const initRes = await fetch(
-      `/api/public/membership-applications/${applicationId}/pay/init`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paymentMethod: method,
-          ...(requiresPayerPhone(method) ? { payerPhone } : {}),
-        }),
+    const tick = async () => {
+      try {
+        const result = await verifyPaystackPayment(reference, paymentMethod);
+        if (result.ok) {
+          stopPolling();
+          setBusy(false);
+          onSuccess({
+            paystackReference: result.paystackReference,
+            message: result.message,
+            paymentMethod: result.paymentMethod,
+          });
+        }
+      } catch (e) {
+        stopPolling();
+        setBusy(false);
+        setErr(e instanceof Error ? e.message : "Could not verify payment.");
       }
-    );
-    const init = await parseJsonResponse<PayInitResponse>(initRes);
+    };
 
-    if (!initRes.ok || !init?.ok || !init.reference || !init.publicKey || !init.amountPesewas) {
-      throw new Error(init?.error ?? "Could not start Paystack checkout.");
+    void tick();
+    pollRef.current = setInterval(() => void tick(), 8000);
+  }
+
+  async function submitPaystackPopup(init: PayInitResponse, paymentMethod: MembershipPaymentMethodId) {
+    if (!init.reference || !init.publicKey || !init.amountPesewas) {
+      throw new Error("Could not start Paystack checkout.");
     }
 
+    setPaystackMode(init.mode ?? null);
     await loadPaystackInline();
 
-    const channels = init.channels ?? paystackChannels(method);
-    const paymentMethod = init.paymentMethod ?? method;
+    const channels = init.channels ?? paystackChannels(paymentMethod);
     const reference = init.reference;
 
     return new Promise<void>((resolve, reject) => {
@@ -205,8 +229,17 @@ export function MembershipPaymentModal({
             completed = true;
             void (async () => {
               try {
-                await verifyPaystackPayment(response.reference, paymentMethod);
-                resolve();
+                const result = await verifyPaystackPayment(response.reference, paymentMethod);
+                if (result.ok) {
+                  onSuccess({
+                    paystackReference: result.paystackReference,
+                    message: result.message,
+                    paymentMethod: result.paymentMethod,
+                  });
+                  resolve();
+                } else {
+                  reject(new Error("Payment not confirmed yet. Try again in a moment."));
+                }
               } catch (e) {
                 reject(e);
               }
@@ -237,23 +270,47 @@ export function MembershipPaymentModal({
       }
     }
 
-    if (requiresPaymentNote(method) && paymentNote.trim().length < 4) {
-      setErr("Enter your bank transfer reference or transaction ID.");
-      return;
-    }
-
-    if (usesPaystack(method) && !paystackReady) {
+    if (method !== "bank_transfer" && !paystackReady) {
       setErr("Loading secure checkout… try again in a moment.");
       return;
     }
 
     setBusy(true);
     try {
-      if (usesPaystack(method)) {
-        await submitPaystackPayment();
-      } else {
-        await submitBankTransfer();
+      const initRes = await fetch(
+        `/api/public/membership-applications/${applicationId}/pay/init`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentMethod: method,
+            ...(requiresPayerPhone(method) ? { payerPhone } : {}),
+          }),
+        }
+      );
+      const init = await parseJsonResponse<PayInitResponse>(initRes);
+
+      if (!initRes.ok || !init?.ok || !init.reference) {
+        throw new Error(init?.error ?? "Could not start payment.");
       }
+
+      if (init.flow === "bank_transfer" && init.accountNumber) {
+        setPaystackMode(init.mode ?? null);
+        setBankTransfer({
+          reference: init.reference,
+          accountName: init.accountName ?? "Paystack",
+          accountNumber: init.accountNumber,
+          bankName: init.bankName ?? "Bank",
+          accountExpiresAt: init.accountExpiresAt ?? "",
+          displayText: init.displayText,
+        });
+        setStep("bank_transfer");
+        setBusy(false);
+        startBankTransferPolling(init.reference, init.paymentMethod ?? method);
+        return;
+      }
+
+      await submitPaystackPopup(init, method);
       setBusy(false);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Payment could not be completed.";
@@ -261,10 +318,61 @@ export function MembershipPaymentModal({
         setErr(message);
       }
       setBusy(false);
+      stopPolling();
     }
   }
 
-  const confirmLabel = method && usesPaystack(method) ? "Pay with Paystack" : "Submit transfer details";
+  async function checkBankTransferNow() {
+    if (!bankTransfer || !method) return;
+    setErr(null);
+    setBusy(true);
+    try {
+      const result = await verifyPaystackPayment(bankTransfer.reference, method);
+      if (result.ok) {
+        stopPolling();
+        onSuccess({
+          paystackReference: result.paystackReference,
+          message: result.message,
+          paymentMethod: result.paymentMethod,
+        });
+      } else {
+        setErr("Transfer not detected yet. Pay the exact amount to the account below, then check again.");
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Could not verify payment.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyAccountNumber() {
+    if (!bankTransfer) return;
+    try {
+      await navigator.clipboard.writeText(bankTransfer.accountNumber);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  const expiresLabel =
+    bankTransfer?.accountExpiresAt &&
+    !Number.isNaN(new Date(bankTransfer.accountExpiresAt).getTime())
+      ? new Date(bankTransfer.accountExpiresAt).toLocaleString("en-GB", {
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+
+  const confirmLabel =
+    step === "bank_transfer"
+      ? "Check payment status"
+      : method === "bank_transfer"
+        ? "Get transfer account"
+        : "Pay with Paystack";
 
   return (
     <div
@@ -277,10 +385,14 @@ export function MembershipPaymentModal({
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-[#011B33] px-5 py-4 text-white">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
-              {method && usesPaystack(method) ? "Paystack · Secure checkout" : "Membership dues"}
+              Paystack · Secure checkout
             </p>
             <h2 id="payment-title" className="text-lg font-semibold">
-              {step === "choose" ? "Choose payment method" : membershipPaymentMethodLabel(method)}
+              {step === "choose"
+                ? "Choose payment method"
+                : step === "bank_transfer"
+                  ? "Bank transfer"
+                  : membershipPaymentMethodLabel(method)}
             </h2>
           </div>
           <button
@@ -326,13 +438,94 @@ export function MembershipPaymentModal({
                 </div>
               ))}
             </div>
+          ) : step === "bank_transfer" && bankTransfer ? (
+            <div className="mt-5 space-y-4">
+              <div className="rounded-xl border-2 border-[#011B33]/20 bg-sky-50/40 p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <Building2 className="h-4 w-4 text-[#011B33]" aria-hidden />
+                  Transfer to this Paystack account
+                </p>
+                {bankTransfer.displayText ? (
+                  <p className="mt-2 text-xs text-slate-600">{bankTransfer.displayText}</p>
+                ) : (
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                    Use instant transfer (GIP) from your bank app or MoMo. Pay exactly {formatGhs(amountGhs)} — we
+                    confirm automatically when Paystack receives it.
+                  </p>
+                )}
+                {paystackMode === "test" ? (
+                  <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-950">
+                    <strong>Test mode:</strong> You cannot send real money to this number. Open{" "}
+                    <a
+                      href="https://demobank.paystackintegrations.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-[#011B33] underline"
+                    >
+                      Paystack Demo Bank
+                    </a>
+                    , transfer exactly {formatGhs(amountGhs)} to the account above (bank may show as &quot;Test
+                    Bank&quot;), then wait for auto-confirmation or tap Check payment status.
+                  </p>
+                ) : null}
+                <dl className="mt-4 space-y-3 text-sm">
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Bank</dt>
+                    <dd className="font-medium text-slate-900">{bankTransfer.bankName}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account name</dt>
+                    <dd className="font-medium text-slate-900">{bankTransfer.accountName}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account number</dt>
+                    <dd className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-lg font-bold tracking-wide text-[#011B33]">
+                        {bankTransfer.accountNumber}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => void copyAccountNumber()}
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium hover:border-[#011B33]/30"
+                      >
+                        {copied ? (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" aria-hidden />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" aria-hidden />
+                            Copy
+                          </>
+                        )}
+                      </button>
+                    </dd>
+                  </div>
+                  {expiresLabel ? (
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Expires</dt>
+                      <dd className="text-slate-800">{expiresLabel}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </div>
+              {polling ? (
+                <p className="flex items-center gap-2 text-xs text-emerald-800">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                  Waiting for your transfer… checking every few seconds.
+                </p>
+              ) : null}
+            </div>
           ) : method ? (
             <div className="mt-5 space-y-4">
               <button
                 type="button"
                 onClick={() => {
+                  stopPolling();
                   setStep("choose");
                   setMethod(null);
+                  setBankTransfer(null);
                   setErr(null);
                 }}
                 disabled={busy}
@@ -343,34 +536,10 @@ export function MembershipPaymentModal({
               </button>
 
               {method === "bank_transfer" ? (
-                <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm">
-                  <p className="flex items-center gap-2 font-semibold text-slate-900">
-                    <Building2 className="h-4 w-4 text-[#011B33]" aria-hidden />
-                    Transfer to this account
-                  </p>
-                  <dl className="mt-3 space-y-2 text-slate-700">
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-slate-500">Bank</dt>
-                      <dd className="text-right font-medium">{GCS_MEMBERSHIP_BANK_DETAILS.bankName}</dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-slate-500">Account name</dt>
-                      <dd className="text-right font-medium">{GCS_MEMBERSHIP_BANK_DETAILS.accountName}</dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-slate-500">Account no.</dt>
-                      <dd className="font-mono text-right font-semibold">
-                        {GCS_MEMBERSHIP_BANK_DETAILS.accountNumber}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-slate-500">Branch</dt>
-                      <dd className="text-right">{GCS_MEMBERSHIP_BANK_DETAILS.branch}</dd>
-                    </div>
-                  </dl>
-                  <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                    After transferring, enter your transaction reference below. The secretariat will verify before
-                    your member ID is issued.
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <p className="text-sm leading-relaxed text-slate-600">
+                    Paystack will generate a one-time account number for this payment. Transfer the exact amount from
+                    your bank or MoMo — no manual reference entry; verification is automatic.
                   </p>
                 </div>
               ) : null}
@@ -387,7 +556,7 @@ export function MembershipPaymentModal({
                 </div>
               ) : null}
 
-              {(method === "ussd" || method.startsWith("mobile_money_")) && method !== "bank_transfer" ? (
+              {method === "ussd" || method.startsWith("mobile_money_") ? (
                 <p className="rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-2.5 text-xs leading-relaxed text-amber-950">
                   {ussdHintForMethod(method)}
                 </p>
@@ -415,33 +584,13 @@ export function MembershipPaymentModal({
                 </div>
               ) : null}
 
-              {requiresPaymentNote(method) ? (
-                <div>
-                  <label htmlFor="pay-note" className="mb-2 block text-sm font-medium text-slate-800">
-                    Transfer reference / transaction ID
-                  </label>
-                  <div className="flex overflow-hidden rounded-xl border border-slate-200 shadow-sm focus-within:border-[#011B33] focus-within:ring-2 focus-within:ring-[#011B33]/20">
-                    <span className="flex w-11 items-center justify-center border-r border-slate-200 bg-slate-50 text-[#011B33]">
-                      <Hash className="h-4 w-4" aria-hidden />
-                    </span>
-                    <input
-                      id="pay-note"
-                      type="text"
-                      value={paymentNote}
-                      onChange={(e) => setPaymentNote(e.target.value)}
-                      placeholder="e.g. TRF-20260515-ABC"
-                      className="min-w-0 flex-1 border-0 bg-white px-3 py-3 text-[15px] outline-none"
-                      disabled={busy}
-                    />
-                  </div>
-                </div>
-              ) : null}
-
               <p className="flex items-start gap-2 text-xs leading-relaxed text-slate-500">
                 <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                {method && usesPaystack(method)
-                  ? "Payments are processed by Paystack. Use test credentials in sandbox mode."
-                  : "Bank transfers are verified manually by the secretariat before your member ID is issued."}
+                {paystackMode === "test"
+                  ? "Paystack test mode — use test payment details only; no real money is charged."
+                  : paystackMode === "live"
+                    ? "Payments are processed securely by Paystack and verified automatically."
+                    : "Payments are processed by Paystack."}
               </p>
             </div>
           ) : null}
@@ -449,18 +598,23 @@ export function MembershipPaymentModal({
           {err ? <p className="mt-4 text-sm font-medium text-red-600">{err}</p> : null}
         </div>
 
-        {step === "confirm" && method ? (
+        {(step === "confirm" || step === "bank_transfer") && method ? (
           <div className="shrink-0 border-t border-slate-100 p-5 pt-0">
             <Button
               type="button"
-              disabled={busy || (usesPaystack(method) && !paystackReady)}
-              onClick={() => void submitPayment()}
+              disabled={
+                busy ||
+                (step === "confirm" && method !== "bank_transfer" && !paystackReady)
+              }
+              onClick={() =>
+                step === "bank_transfer" ? void checkBankTransferNow() : void submitPayment()
+              }
               className="h-12 w-full rounded-xl bg-[#011B33] text-base font-semibold text-white hover:bg-[#022a4d]"
             >
               {busy ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                  {usesPaystack(method) ? "Processing…" : "Submitting…"}
+                  Processing…
                 </>
               ) : (
                 confirmLabel

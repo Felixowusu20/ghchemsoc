@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Award, Bookmark, CreditCard, Inbox, LayoutDashboard, Library, User } from "lucide-react";
+import { MemberAnnualStatusBadge } from "@/components/membership/member-annual-status-badge";
+import { useMemberPortal } from "@/components/membership/member-portal-context";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -18,6 +20,7 @@ const links = [
 
 export function MemberPortalNav() {
   const pathname = usePathname();
+  const { profile } = useMemberPortal();
   const [unreadCount, setUnreadCount] = useState(0);
 
   const refreshUnread = useCallback(async () => {
@@ -40,6 +43,11 @@ export function MemberPortalNav() {
       className="flex flex-col gap-1 rounded-2xl border border-gcs-border bg-white p-2 shadow-sm"
       aria-label="Member area"
     >
+      {profile ? (
+        <div className="mb-1 px-1 pt-1">
+          <MemberAnnualStatusBadge profile={profile} variant="pill" />
+        </div>
+      ) : null}
       {links.map(({ href, label, icon: Icon, exact, badge }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         const showBadge = badge && unreadCount > 0;

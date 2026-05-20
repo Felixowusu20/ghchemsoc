@@ -11,14 +11,6 @@ export const MEMBERSHIP_PAYMENT_METHOD_VALUES = [
 
 export type MembershipPaymentMethodId = (typeof MEMBERSHIP_PAYMENT_METHOD_VALUES)[number];
 
-export const GCS_MEMBERSHIP_BANK_DETAILS = {
-  bankName: "Ghana Commercial Bank",
-  accountName: "Ghana Chemical Society",
-  accountNumber: "1234567890123",
-  branch: "Accra Main",
-  swift: "GHCBGHAC",
-} as const;
-
 export const PAYMENT_METHOD_GROUPS: {
   id: string;
   title: string;
@@ -38,8 +30,8 @@ export const PAYMENT_METHOD_GROUPS: {
   {
     id: "bank",
     title: "Bank transfer",
-    subtitle: "Local bank account",
-    methods: [{ id: "bank_transfer", label: "Bank transfer" }],
+    subtitle: "Paystack · transfer from your bank or MoMo wallet",
+    methods: [{ id: "bank_transfer", label: "Bank transfer", detail: "Auto-verified" }],
   },
   {
     id: "card",
@@ -83,20 +75,21 @@ export function requiresPayerPhone(method: MembershipPaymentMethodId): boolean {
   return isMobileMoneyMethod(method) || method === "ussd";
 }
 
-export function requiresPaymentNote(method: MembershipPaymentMethodId): boolean {
-  return method === "bank_transfer";
+export function requiresPaymentNote(_method: MembershipPaymentMethodId): boolean {
+  return false;
 }
 
-/** Bank transfers are recorded manually; all other methods use Paystack checkout. */
-export function usesPaystack(method: MembershipPaymentMethodId): boolean {
-  return method !== "bank_transfer";
+/** All membership payment methods use Paystack checkout (including bank transfer). */
+export function usesPaystack(_method: MembershipPaymentMethodId): boolean {
+  return true;
 }
 
 export function paystackChannels(method: MembershipPaymentMethodId): string[] {
+  if (method === "bank_transfer") return ["bank_transfer"];
   if (isMobileMoneyMethod(method)) return ["mobile_money"];
   if (method === "debit_credit_card") return ["card"];
   if (method === "ussd") return ["ussd"];
-  return ["card", "mobile_money", "ussd"];
+  return ["card", "mobile_money", "ussd", "bank_transfer"];
 }
 
 export function normalizeGhanaPhone(raw: string): string | null {

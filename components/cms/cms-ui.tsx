@@ -6,7 +6,7 @@ export function CmsCard({ className, children }: { className?: string; children:
   return (
     <section
       className={cn(
-        "rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm ring-1 ring-slate-900/[0.03]",
+        "rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm",
         className
       )}
     >
@@ -24,7 +24,7 @@ export function CmsInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...props}
       className={cn(
-        "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-gcs-primary/20 transition-shadow placeholder:text-slate-400 focus:border-gcs-primary focus:ring-2",
+        "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-gcs-foreground shadow-sm outline-none transition-shadow placeholder:text-slate-400 focus:border-gcs-primary focus:ring-2 focus:ring-gcs-primary/15",
         props.className
       )}
     />
@@ -36,7 +36,7 @@ export function CmsTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElem
     <textarea
       {...props}
       className={cn(
-        "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-gcs-primary/20 transition-shadow placeholder:text-slate-400 focus:border-gcs-primary focus:ring-2",
+        "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-gcs-foreground shadow-sm outline-none transition-shadow placeholder:text-slate-400 focus:border-gcs-primary focus:ring-2 focus:ring-gcs-primary/15",
         props.className
       )}
     />

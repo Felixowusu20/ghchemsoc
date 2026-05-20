@@ -74,8 +74,8 @@ export default function MembershipPage() {
                             Membership registration and renewal
                         </h1>
                         <p className="gcs-lead mx-auto mt-5 max-w-2xl lg:mx-0 lg:max-w-xl">
-                            Complete the form below for new membership or annual renewal. The secretariat will confirm your
-                            record and share payment details where they apply.
+                            Complete the form below for new membership or annual renewal. Annual dues are GHS 250; your
+                            membership stays active for one year from verified payment.
                         </p>
 
                         <ol className="mx-auto mt-10 grid max-w-2xl gap-3 sm:grid-cols-3 lg:mx-0 lg:max-w-3xl">

@@ -23,6 +23,7 @@ import {
     Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MemberAnnualStatusBadge } from "@/components/membership/member-annual-status-badge";
 import {
     clearMemberAuthSession,
     formatDeclarationDate,
@@ -317,10 +318,7 @@ export function MemberAccountDashboard() {
                                             {displayMemberId}
                                         </p>
                                     </div>
-                                    <span className="inline-flex h-fit items-center justify-center gap-2 self-start rounded-full border border-blue-100 bg-blue-50/90 px-4 py-2.5 text-sm font-medium text-blue-950 shadow-sm">
-                                        <Atom className="h-4 w-4 text-gcs-primary" aria-hidden />
-                                        GCS member
-                                    </span>
+                                    <MemberAnnualStatusBadge profile={profile} variant="pill" className="self-start" />
                                 </div>
                             </div>
                         </div>

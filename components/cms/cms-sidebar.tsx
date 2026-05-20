@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3,
   LayoutDashboard,
   ImageIcon,
   FileText,
@@ -20,6 +21,7 @@ import {
   UserCircle,
   Megaphone,
   Menu,
+  Settings,
   X,
   ExternalLink,
 } from "lucide-react";
@@ -45,7 +47,10 @@ const navGroups: NavGroup[] = [
   {
     id: "overview",
     label: "Overview",
-    items: [{ href: "/cms", label: "Overview", icon: LayoutDashboard, badge: "total" }],
+    items: [
+      { href: "/cms", label: "Overview", icon: LayoutDashboard, badge: "total" },
+      { href: "/cms/analytics", label: "Analytics", icon: BarChart3 },
+    ],
   },
   {
     id: "site",
@@ -83,12 +88,19 @@ const navGroups: NavGroup[] = [
       { href: "/cms/contact-inquiries", label: "Contact messages", icon: Inbox, badge: "contact" },
     ],
   },
+  {
+    id: "settings",
+    label: "Settings",
+    items: [{ href: "/cms/settings", label: "Settings", icon: Settings }],
+  },
 ];
 
 function isNavActive(href: string, pathname: string) {
   if (href === "/cms") return pathname === "/cms";
   if (href === "/cms/contact") return pathname === "/cms/contact";
   if (href === "/cms/homepage-explore") return pathname === "/cms/homepage-explore";
+  if (href === "/cms/settings") return pathname === "/cms/settings";
+  if (href === "/cms/analytics") return pathname === "/cms/analytics";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

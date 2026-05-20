@@ -16,9 +16,13 @@ export function isDbConnectionError(error: unknown): boolean {
     return true;
   }
   const msg = errorMessage(error);
-  return /Can't reach database server|ECONNREFUSED|ETIMEDOUT|connection timed out|Connection terminated/i.test(
+  return /Can't reach database server|ECONNREFUSED|ETIMEDOUT|connection timed out|Connection terminated|connection pool|Timed out fetching a new connection/i.test(
     msg
   );
+}
+
+export function databaseUnavailableMessage(): string {
+  return "The database is busy or waking up. Wait a few seconds and try again.";
 }
 
 /** Stale/disconnected Prisma engine (common after dev hot reload). */

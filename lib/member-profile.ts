@@ -27,6 +27,9 @@ export type MemberProfile = {
     /** Local data URL fallback when Cloudinary is not configured */
     avatarDataUrl?: string;
     payments: MemberPayment[];
+    /** Present when loaded from the server after sign-in. */
+    annualMembershipStatus?: "active" | "inactive";
+    annualMembershipValidUntil?: string;
 };
 
 /** Stored profiles from older form versions */
