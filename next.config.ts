@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /** Ensure Turbopack resolves this app, not a parent folder lockfile. */
+  turbopack: {
+    root: process.cwd(),
+  },
   /** Cloudinary SDK expects Node's `require` / streams; bundling can break uploads. */
   serverExternalPackages: ["cloudinary"],
   images: {

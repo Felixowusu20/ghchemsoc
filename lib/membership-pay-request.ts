@@ -2,9 +2,7 @@ import { z } from "zod";
 import {
   MEMBERSHIP_PAYMENT_METHOD_VALUES,
   normalizeGhanaPhone,
-  requiresPaymentNote,
   requiresPayerPhone,
-  usesPaystack,
 } from "@/lib/membership-payment-methods";
 
 export const membershipPayBodySchema = z
@@ -20,15 +18,6 @@ export const membershipPayBodySchema = z
           code: z.ZodIssueCode.custom,
           message: "Enter a valid Ghana phone number for this payment method.",
           path: ["payerPhone"],
-        });
-      }
-    }
-    if (requiresPaymentNote(data.paymentMethod)) {
-      if (!data.paymentNote?.trim() || data.paymentNote.trim().length < 4) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Enter your bank transfer reference or transaction ID.",
-          path: ["paymentNote"],
         });
       }
     }

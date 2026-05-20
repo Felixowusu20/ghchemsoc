@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
+  BarChart3,
   BookOpen,
   Calendar,
   ClipboardList,
@@ -16,6 +17,7 @@ import {
   MessageCircle,
   Newspaper,
   PanelBottom,
+  Settings,
   Users,
   Wallet,
 } from "lucide-react";
@@ -35,7 +37,9 @@ export type DashboardIconKey =
   | "MessageCircle"
   | "Inbox"
   | "Wallet"
-  | "ClipboardList";
+  | "ClipboardList"
+  | "Settings"
+  | "BarChart3";
 
 export type DashboardModuleItem = {
   href: string;
@@ -67,6 +71,8 @@ const ICONS: Record<DashboardIconKey, LucideIcon> = {
   Inbox,
   Wallet,
   ClipboardList,
+  Settings,
+  BarChart3,
 };
 
 function sectionBadgeTotal(items: DashboardModuleItem[]) {
@@ -86,8 +92,8 @@ function ModuleCard({ href, title, desc, icon, badge }: DashboardModuleItem) {
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gcs-primary/10 text-gcs-primary transition-colors group-hover:bg-gcs-primary group-hover:text-white">
           <Icon className="h-5 w-5" strokeWidth={2} aria-hidden />
         </div>
-        <h3 className="mt-4 pr-8 text-base font-semibold text-slate-900">{title}</h3>
-        <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{desc}</p>
+        <h3 className="mt-4 pr-8 text-base font-semibold text-gcs-foreground">{title}</h3>
+        <p className="mt-1.5 text-sm leading-relaxed text-gcs-muted-text">{desc}</p>
         <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-gcs-muted-text transition-colors group-hover:text-gcs-primary">
           Open
           <ArrowUpRight className="h-3.5 w-3.5" />
@@ -106,10 +112,10 @@ export function CmsDashboardTabs({ sections }: { sections: DashboardModuleSectio
   return (
     <section aria-labelledby="manage-content-heading">
       <div className="mb-5">
-        <h2 id="manage-content-heading" className="text-lg font-semibold tracking-tight text-slate-900">
+        <h2 id="manage-content-heading" className="text-lg font-semibold tracking-tight text-gcs-foreground">
           Manage content
         </h2>
-        <p className="mt-1 text-sm text-slate-600">Choose a category, then open the area you want to edit.</p>
+        <p className="mt-1 text-sm text-gcs-muted-text">Choose a category, then open the area you want to edit.</p>
       </div>
 
       <div
@@ -133,7 +139,7 @@ export function CmsDashboardTabs({ sections }: { sections: DashboardModuleSectio
                 "relative flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all sm:flex-none sm:min-w-[9.5rem]",
                 isActive
                   ? "bg-gcs-primary text-white shadow-md shadow-gcs-primary/25"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  : "text-gcs-muted-text hover:bg-slate-50 hover:text-gcs-foreground"
               )}
             >
               {section.tabLabel}
@@ -168,8 +174,8 @@ export function CmsDashboardTabs({ sections }: { sections: DashboardModuleSectio
         className="mt-6"
       >
         <div className="mb-5 rounded-xl border border-gcs-border/60 bg-white px-5 py-4 shadow-sm">
-          <h3 className="font-semibold text-slate-900">{active.title}</h3>
-          <p className="mt-1 text-sm text-slate-600">{active.description}</p>
+          <h3 className="font-semibold text-gcs-foreground">{active.title}</h3>
+          <p className="mt-1 text-sm text-gcs-muted-text">{active.description}</p>
         </div>
 
         <ul

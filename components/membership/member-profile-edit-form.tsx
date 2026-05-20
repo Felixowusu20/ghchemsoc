@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Building2, FlaskConical, Loader2, Mail, Save, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MemberAnnualStatusBadge } from "@/components/membership/member-annual-status-badge";
 import { useMemberPortal } from "@/components/membership/member-portal-context";
 import { formatDeclarationDate, memberDisplayName, saveMemberAuthSession, saveMemberProfile } from "@/lib/member-profile";
 import { gooeyToast } from "@/lib/toast";
@@ -76,6 +77,9 @@ export function MemberProfileEditForm() {
           Update contact details and your photo. Your member ID and legal name are managed by the secretariat.
           {serverSession ? " Changes sync across devices when you are signed in." : " Sign in with email and member ID to sync across devices."}
         </p>
+        <div className="mt-5 max-w-md">
+          <MemberAnnualStatusBadge profile={profile} variant="card" />
+        </div>
       </motion.div>
 
       <motion.form

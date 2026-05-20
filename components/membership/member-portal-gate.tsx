@@ -22,7 +22,7 @@ export function MemberPortalGate({ children }: { children: React.ReactNode }) {
     return (
       <GateCard title="Member portfolio">
         <p className="mt-3 text-sm leading-relaxed text-gcs-muted-text">
-          Apply for membership on this device, then use{" "}
+          Apply for membership {" "}
           <Link href="/login?role=member" className="font-medium text-gcs-primary hover:underline">
             member sign-in
           </Link>{" "}
@@ -30,7 +30,7 @@ export function MemberPortalGate({ children }: { children: React.ReactNode }) {
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button asChild className="h-11 rounded-full bg-gcs-primary px-8 text-white hover:bg-gcs-primary-hover">
-            <Link href="/membership">Register / apply</Link>
+            <Link href="/membership">Become a Member</Link>
           </Button>
           <Button asChild variant="outline" className="h-11 rounded-full border-gcs-border px-8 text-sm">
             <Link href="/login?role=member">Member sign-in</Link>

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { CreditCard } from "lucide-react";
+import { MemberAnnualStatusBadge } from "@/components/membership/member-annual-status-badge";
 import { useMemberPortal } from "@/components/membership/member-portal-context";
 import type { MemberProfile } from "@/lib/member-profile";
 
@@ -38,6 +39,8 @@ export function MemberPaymentsPage() {
           Membership dues and receipts recorded by the secretariat. Amounts are shown in Ghana Cedis (GHS) where applicable.
         </p>
       </div>
+
+      <MemberAnnualStatusBadge profile={profile} variant="card" className="max-w-md" />
 
       <motion.section
         initial={{ opacity: 0, y: 10 }}

@@ -35,6 +35,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  if (payload.event === "bank.transfer.rejected") {
+    console.warn("[paystack-webhook] Bank transfer rejected", payload.data?.reference);
+    return NextResponse.json({ ok: true, ignored: true });
+  }
+
   if (payload.event !== "charge.success") {
     return NextResponse.json({ ok: true, ignored: true });
   }

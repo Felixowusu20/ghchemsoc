@@ -24,9 +24,29 @@ const globalForPrisma = globalThis as unknown as {
   prismaConnectPromise?: Promise<void>;
 };
 
+/** Prefer Neon pooler URL; cap connections in dev to avoid pool timeouts. */
+function databaseUrl(): string | undefined {
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) return undefined;
+  if (/connection_limit=|pool_timeout=|pgbouncer=true/i.test(url)) return url;
+
+  const separator = url.includes("?") ? "&" : "?";
+  const limit = process.env.NODE_ENV === "production" ? "10" : "3";
+  return `${url}${separator}connection_limit=${limit}&pool_timeout=20`;
+}
+
+function disconnectPrismaClient(client: PrismaClient | undefined) {
+  if (!client) return;
+  void client.$disconnect().catch(() => {
+    /* ignore — client may already be closed */
+  });
+}
+
 function createPrismaClient() {
+  const url = databaseUrl();
   return new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    ...(url ? { datasources: { db: { url } } } : {}),
   });
 }
 
@@ -44,6 +64,7 @@ function recycleStalePrisma() {
     globalForPrisma.prismaSchemaVersion !== PRISMA_DEV_SCHEMA_VERSION;
 
   if (versionStale || clientMissingDelegates(cached)) {
+    disconnectPrismaClient(cached);
     globalForPrisma.prisma = undefined;
     globalForPrisma.prismaSchemaVersion = undefined;
     globalForPrisma.prismaConnectPromise = undefined;
@@ -51,6 +72,7 @@ function recycleStalePrisma() {
 }
 
 export function resetPrismaClient() {
+  disconnectPrismaClient(globalForPrisma.prisma);
   globalForPrisma.prisma = undefined;
   globalForPrisma.prismaSchemaVersion = undefined;
   globalForPrisma.prismaConnectPromise = undefined;
@@ -67,6 +89,9 @@ function ensurePrismaClient(): PrismaClient {
   recycleStalePrisma();
 
   if (!globalForPrisma.prisma || clientMissingDelegates(globalForPrisma.prisma)) {
+    if (globalForPrisma.prisma) {
+      disconnectPrismaClient(globalForPrisma.prisma);
+    }
     const client = createPrismaClient();
     if (clientMissingDelegates(client)) {
       const missing = REQUIRED_DELEGATES.filter(

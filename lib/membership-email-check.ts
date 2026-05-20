@@ -1,6 +1,7 @@
 import type { MembershipApplication, MembershipApplicationStatus } from "@prisma/client";
+import { databaseUnavailableMessage, isDbConnectionError } from "@/lib/db-fallback";
 import { normalizeMembershipEmail } from "@/lib/member-email";
-import { prisma } from "@/lib/prisma";
+import { prisma, prismaReady, resetPrismaClient } from "@/lib/prisma";
 
 export type MembershipEmailCheckResult = {
   available: boolean;
@@ -25,13 +26,7 @@ function statusMessage(status: MembershipApplicationStatus, memberId: string | n
   }
 }
 
-/** Latest non-rejected application for this email, if any. */
-export async function findActiveMembershipByEmail(
-  emailInput: string
-): Promise<MembershipApplication | null> {
-  const email = normalizeMembershipEmail(emailInput);
-  if (!email) return null;
-
+async function queryActiveMembershipByEmail(email: string): Promise<MembershipApplication | null> {
   return prisma.membershipApplication.findFirst({
     where: {
       email: { equals: email, mode: "insensitive" },
@@ -39,6 +34,30 @@ export async function findActiveMembershipByEmail(
     },
     orderBy: { createdAt: "desc" },
   });
+}
+
+/** Latest non-rejected application for this email, if any. */
+export async function findActiveMembershipByEmail(
+  emailInput: string
+): Promise<MembershipApplication | null> {
+  const email = normalizeMembershipEmail(emailInput);
+  if (!email) return null;
+
+  if (!(await prismaReady())) {
+    throw new Error(databaseUnavailableMessage());
+  }
+
+  try {
+    return await queryActiveMembershipByEmail(email);
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production" && isDbConnectionError(error)) {
+      resetPrismaClient();
+      if (await prismaReady()) {
+        return queryActiveMembershipByEmail(email);
+      }
+    }
+    throw error;
+  }
 }
 
 export async function checkMembershipEmailAvailable(
@@ -49,14 +68,21 @@ export async function checkMembershipEmailAvailable(
     return { available: false, message: "Enter a valid email address." };
   }
 
-  const existing = await findActiveMembershipByEmail(email);
-  if (!existing) {
-    return { available: true };
-  }
+  try {
+    const existing = await findActiveMembershipByEmail(email);
+    if (!existing) {
+      return { available: true };
+    }
 
-  return {
-    available: false,
-    status: existing.status,
-    message: statusMessage(existing.status, existing.memberId),
-  };
+    return {
+      available: false,
+      status: existing.status,
+      message: statusMessage(existing.status, existing.memberId),
+    };
+  } catch (error) {
+    if (isDbConnectionError(error)) {
+      return { available: false, message: databaseUnavailableMessage() };
+    }
+    throw error;
+  }
 }

@@ -6,8 +6,26 @@ import {
   generateMembershipMemberId,
   serializeMembershipApplication,
 } from "@/lib/membership-application";
+import { countMembershipAnnualStatuses } from "@/lib/membership-annual-status";
 import { sendMembershipApprovalEmail } from "@/lib/membership-approval-email";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+
+function membershipSearchWhere(q: string): Prisma.MembershipApplicationWhereInput {
+  return {
+    OR: [
+      { fullName: { contains: q, mode: "insensitive" } },
+      { email: { contains: q, mode: "insensitive" } },
+      { institution: { contains: q, mode: "insensitive" } },
+      { memberId: { contains: q, mode: "insensitive" } },
+      { paystackReference: { contains: q, mode: "insensitive" } },
+      { payerPhone: { contains: q, mode: "insensitive" } },
+      { phone: { contains: q, mode: "insensitive" } },
+      { paymentNote: { contains: q, mode: "insensitive" } },
+      { id: { contains: q, mode: "insensitive" } },
+    ],
+  };
+}
 
 export async function GET(request: NextRequest) {
   const denied = await assertAdmin(request);
@@ -15,16 +33,22 @@ export async function GET(request: NextRequest) {
 
   const status = request.nextUrl.searchParams.get("status");
   const pendingOnly = request.nextUrl.searchParams.get("pending") === "1";
+  const q = request.nextUrl.searchParams.get("q")?.trim();
 
-  const where = pendingOnly
-    ? { status: "payment_submitted" as const, paymentStatus: "submitted" as const }
+  const statusWhere: Prisma.MembershipApplicationWhereInput | undefined = pendingOnly
+    ? { status: "payment_submitted", paymentStatus: "submitted" }
     : status
       ? { status: status as "pending_payment" | "payment_submitted" | "approved" | "rejected" }
       : undefined;
 
+  const andParts: Prisma.MembershipApplicationWhereInput[] = [];
+  if (statusWhere) andParts.push(statusWhere);
+  if (q) andParts.push(membershipSearchWhere(q));
+  const listWhere = andParts.length > 0 ? { AND: andParts } : undefined;
+
   const [rows, stats] = await Promise.all([
     prisma.membershipApplication.findMany({
-      where,
+      where: listWhere,
       orderBy: { createdAt: "desc" },
     }),
     prisma.membershipApplication.groupBy({
@@ -51,6 +75,13 @@ export async function GET(request: NextRequest) {
 
   const statusCounts = Object.fromEntries(stats.map((s) => [s.status, s._count._all]));
 
+  const approvedRows = await prisma.membershipApplication.findMany({
+    where: { status: "approved", memberId: { not: null } },
+    select: { status: true, paidAt: true, approvedAt: true },
+  });
+  const { active: activeMembers, inactive: inactiveMembers } =
+    countMembershipAnnualStatuses(approvedRows);
+
   return NextResponse.json({
     applications: rows.map(serializeMembershipApplication),
     dashboard: {
@@ -60,6 +91,8 @@ export async function GET(request: NextRequest) {
       awaitingVerificationGhs: submittedRevenue._sum.amountGhs ?? 0,
       awaitingVerificationCount: submittedRevenue._count._all,
       approved: statusCounts.approved ?? 0,
+      activeMembers,
+      inactiveMembers,
       rejected: statusCounts.rejected ?? 0,
       pendingPayment: statusCounts.pending_payment ?? 0,
     },
@@ -82,6 +115,14 @@ const patchSchema = z.discriminatedUnion("action", [
     applicationId: z.string().min(1),
     read: z.boolean(),
   }),
+  z.object({
+    action: z.literal("delete"),
+    applicationId: z.string().min(1),
+  }),
+  z.object({
+    action: z.literal("delete_many"),
+    applicationIds: z.array(z.string().min(1)).min(1).max(100),
+  }),
 ]);
 
 export async function PATCH(request: NextRequest) {
@@ -101,6 +142,14 @@ export async function PATCH(request: NextRequest) {
   }
 
   const data = parsed.data;
+
+  if (data.action === "delete_many") {
+    const result = await prisma.membershipApplication.deleteMany({
+      where: { id: { in: data.applicationIds } },
+    });
+    return NextResponse.json({ ok: true, deleted: result.count });
+  }
+
   const existing = await prisma.membershipApplication.findUnique({
     where: { id: data.applicationId },
   });
@@ -114,6 +163,11 @@ export async function PATCH(request: NextRequest) {
       data: { read: data.read },
     });
     return NextResponse.json({ application: serializeMembershipApplication(row) });
+  }
+
+  if (data.action === "delete") {
+    await prisma.membershipApplication.delete({ where: { id: existing.id } });
+    return NextResponse.json({ ok: true, deletedId: existing.id });
   }
 
   if (data.action === "reject") {

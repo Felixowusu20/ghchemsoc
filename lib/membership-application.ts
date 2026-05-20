@@ -4,9 +4,13 @@ import type {
   MembershipPaymentMethod,
   MembershipPaymentStatus,
 } from "@prisma/client";
+import {
+  getMembershipAnnualStatus,
+  type MembershipAnnualStatus,
+} from "@/lib/membership-annual-status";
 
 /** Annual membership dues in Ghana cedis. */
-export const MEMBERSHIP_FEE_GHS = 150;
+export const MEMBERSHIP_FEE_GHS = 250;
 
 export function generateMembershipMemberId(): string {
   const year = new Date().getUTCFullYear();
@@ -69,6 +73,10 @@ export type MembershipApplicationRow = {
   read: boolean;
   createdAt: string;
   updatedAt: string;
+  /** Annual dues period for approved members (250 GHS / year from last payment). */
+  annualMembershipStatus: MembershipAnnualStatus;
+  annualMembershipValidUntil: string | null;
+  annualMembershipPaidOn: string | null;
 };
 
 export function serializeMembershipApplication(
@@ -100,6 +108,8 @@ export function serializeMembershipApplication(
     updatedAt: Date;
   }
 ): MembershipApplicationRow {
+  const annual = getMembershipAnnualStatus(r);
+
   return {
     id: r.id,
     status: r.status,
@@ -126,5 +136,8 @@ export function serializeMembershipApplication(
     read: r.read,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),
+    annualMembershipStatus: annual.status,
+    annualMembershipValidUntil: annual.validUntil,
+    annualMembershipPaidOn: annual.anchorAt,
   };
 }

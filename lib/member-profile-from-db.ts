@@ -3,10 +3,12 @@ import type { MemberProfile } from "@/lib/member-profile";
 import { emailsMatch } from "@/lib/member-email";
 import { normalizeMemberId } from "@/lib/member-profile";
 import { membershipPaymentMethodLabel } from "@/lib/membership-payment-methods";
+import { getMembershipAnnualStatus } from "@/lib/membership-annual-status";
 
 export function memberProfileFromApplication(row: MembershipApplication): MemberProfile {
   const memberId = row.memberId!;
   const verifiedAt = row.approvedAt ?? row.paidAt ?? row.createdAt;
+  const annual = getMembershipAnnualStatus(row);
 
   return {
     memberId,
@@ -32,6 +34,12 @@ export function memberProfileFromApplication(row: MembershipApplication): Member
         ...(row.paystackReference ? { reference: row.paystackReference } : {}),
       },
     ],
+    ...(annual.status === "active" || annual.status === "inactive"
+      ? {
+          annualMembershipStatus: annual.status,
+          ...(annual.validUntil ? { annualMembershipValidUntil: annual.validUntil } : {}),
+        }
+      : {}),
   };
 }
 

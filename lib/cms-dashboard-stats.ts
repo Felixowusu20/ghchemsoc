@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withDbFallback } from "@/lib/db-fallback";
+import { countMembershipAnnualStatuses } from "@/lib/membership-annual-status";
 
 export type CmsDashboardStats = {
   publishedNews: number;
@@ -7,6 +8,8 @@ export type CmsDashboardStats = {
   publishedPublications: number;
   publishedHeroSlides: number;
   approvedMembers: number;
+  activeMembers: number;
+  inactiveMembers: number;
   draftAnnouncements: number;
   sentAnnouncements: number;
   /** ISO string for the most recent member announcement that was sent. */
@@ -19,6 +22,8 @@ const emptyStats = (): CmsDashboardStats => ({
   publishedPublications: 0,
   publishedHeroSlides: 0,
   approvedMembers: 0,
+  activeMembers: 0,
+  inactiveMembers: 0,
   draftAnnouncements: 0,
   sentAnnouncements: 0,
   latestAnnouncementSentAt: null,
@@ -34,6 +39,7 @@ export async function getCmsDashboardStats(): Promise<CmsDashboardStats> {
         publishedPublications,
         publishedHeroSlides,
         approvedMembers,
+        approvedMemberRows,
         draftAnnouncements,
         sentAnnouncements,
         latestAnnouncement,
@@ -45,6 +51,10 @@ export async function getCmsDashboardStats(): Promise<CmsDashboardStats> {
         prisma.membershipApplication.count({
           where: { status: "approved", memberId: { not: null } },
         }),
+        prisma.membershipApplication.findMany({
+          where: { status: "approved", memberId: { not: null } },
+          select: { status: true, paidAt: true, approvedAt: true },
+        }),
         prisma.memberAnnouncement.count({ where: { sentAt: null } }),
         prisma.memberAnnouncement.count({ where: { sentAt: { not: null } } }),
         prisma.memberAnnouncement.findFirst({
@@ -54,12 +64,17 @@ export async function getCmsDashboardStats(): Promise<CmsDashboardStats> {
         }),
       ]);
 
+      const { active: activeMembers, inactive: inactiveMembers } =
+        countMembershipAnnualStatuses(approvedMemberRows);
+
       return {
         publishedNews,
         publishedEvents,
         publishedPublications,
         publishedHeroSlides,
         approvedMembers,
+        activeMembers,
+        inactiveMembers,
         draftAnnouncements,
         sentAnnouncements,
         latestAnnouncementSentAt: latestAnnouncement?.sentAt?.toISOString() ?? null,

@@ -529,7 +529,7 @@ model MembershipApplication {
   photoUrl      String?
   photoPublicId String?
 
-  amountGhs         Int                     @default(150)
+  amountGhs         Int                     @default(250)
   paymentStatus     MembershipPaymentStatus @default(pending)
   paymentMethod     MembershipPaymentMethod?
   paystackReference String?
@@ -678,4 +678,15 @@ model MemberBenefit {
   @@index([published])
   @@index([section])
   @@index([sortOrder])
+}
+
+/// Anonymous public site visits (for CMS analytics).
+model SitePageView {
+  id         String   @id @default(cuid())
+  path       String
+  viewedAt   DateTime @default(now())
+  visitorKey String?
+
+  @@index([viewedAt])
+  @@index([visitorKey])
 }

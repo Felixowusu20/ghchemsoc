@@ -6,7 +6,9 @@ import { prismaSaveErrorMessage } from "@/lib/prisma-errors";
 import {
   isPaystackChargeSuccessful,
   isPaystackConfigured,
+  isPaystackTransactionPending,
   paymentMethodFromPaystackMetadata,
+  paystackVerifyPendingMessage,
   verifyPaystackTransaction,
 } from "@/lib/paystack";
 
@@ -53,8 +55,13 @@ export async function POST(
 
     const verified = await verifyPaystackTransaction(reference);
     if (!isPaystackChargeSuccessful(verified)) {
+      const pending = isPaystackTransactionPending(verified);
       return NextResponse.json(
-        { ok: false, error: "Payment was not completed. Try again or use another method." },
+        {
+          ok: false,
+          pending,
+          error: paystackVerifyPendingMessage(verified),
+        },
         { status: 402 }
       );
     }

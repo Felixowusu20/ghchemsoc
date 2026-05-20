@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { createMembershipApplication } from "@/app/membership/actions";
 import { MembershipPaymentModal } from "@/components/membership/membership-payment-modal";
+import { formatGhs, MEMBERSHIP_FEE_GHS } from "@/lib/membership-application";
 import { MembershipPhotoField } from "@/components/membership/membership-photo-field";
 import { gooeyToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -318,6 +319,11 @@ export function MembershipRegistrationForm() {
                 </FormSection>
 
                 <div className="mt-10 flex flex-col gap-5 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-5 md:flex-row md:items-center md:justify-between md:p-6">
+                    <p className="text-sm text-slate-600">
+                        <span className="font-semibold text-slate-800">Annual dues:</span>{" "}
+                        {formatGhs(MEMBERSHIP_FEE_GHS)} per year. Membership stays active for 12 months from your verified
+                        payment.
+                    </p>
                     <p className="flex items-start gap-2.5 text-sm text-slate-600">
                         <Mail className="mt-0.5 h-4 w-4 shrink-0 text-gcs-primary" aria-hidden />
                         <span>

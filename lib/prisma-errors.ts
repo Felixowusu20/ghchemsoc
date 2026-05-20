@@ -5,8 +5,8 @@ export function prismaSaveErrorMessage(err: unknown, context = "save"): string {
     if (err.code === "P2021") {
       return "Membership database tables are not set up yet. Run: npx prisma db push — then restart the dev server.";
     }
-    if (err.code === "P1001" || err.code === "P1002" || err.code === "P1017") {
-      return "Could not reach the database. Wait a moment and try again (Neon may be waking up).";
+    if (err.code === "P1001" || err.code === "P1002" || err.code === "P1017" || err.code === "P2024") {
+      return "The database is busy or waking up. Wait a few seconds and try again.";
     }
   }
   const msg = err instanceof Error ? err.message : String(err);
