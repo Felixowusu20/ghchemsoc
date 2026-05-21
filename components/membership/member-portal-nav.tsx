@@ -40,14 +40,15 @@ export function MemberPortalNav() {
 
   return (
     <nav
-      className="flex flex-col gap-1 rounded-2xl border border-gcs-border bg-white p-2 shadow-sm"
+      className="flex flex-col gap-1 rounded-2xl border border-gcs-border bg-white p-2 shadow-sm lg:max-w-none"
       aria-label="Member area"
     >
       {profile ? (
-        <div className="mb-1 px-1 pt-1">
+        <div className="mb-1 shrink-0 px-1 pt-1 lg:mb-1">
           <MemberAnnualStatusBadge profile={profile} variant="pill" />
         </div>
       ) : null}
+      <div className="-mx-1 flex gap-1 overflow-x-auto pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:pb-0">
       {links.map(({ href, label, icon: Icon, exact, badge }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         const showBadge = badge && unreadCount > 0;
@@ -56,14 +57,14 @@ export function MemberPortalNav() {
             key={href}
             href={href}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors lg:shrink lg:gap-3",
               active
                 ? "bg-gcs-primary text-white shadow-sm shadow-gcs-primary/20"
                 : "text-gcs-muted-text hover:bg-neutral-50 hover:text-gcs-foreground"
             )}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden />
-            <span className="flex-1 truncate">{label}</span>
+            <span className="whitespace-nowrap lg:flex-1 lg:truncate">{label}</span>
             {showBadge ? (
               <span
                 className={cn(
@@ -78,6 +79,7 @@ export function MemberPortalNav() {
           </Link>
         );
       })}
+      </div>
     </nav>
   );
 }

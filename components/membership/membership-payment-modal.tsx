@@ -409,7 +409,7 @@ export function MembershipPaymentModal({
         <div className="min-h-0 flex-1 overflow-y-auto p-5">
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-xs text-slate-500">Amount due</p>
-            <p className="text-2xl font-bold tracking-tight text-slate-900">{formatGhs(amountGhs)}</p>
+            <p className="text-2xl font-bold tracking-tight text-slate-700">{formatGhs(amountGhs)}</p>
             <p className="mt-1 text-xs text-slate-500">Annual membership · {email}</p>
           </div>
 
@@ -417,7 +417,7 @@ export function MembershipPaymentModal({
             <div className="mt-5 space-y-5">
               {PAYMENT_METHOD_GROUPS.map((group) => (
                 <div key={group.id}>
-                  <p className="text-sm font-semibold text-slate-900">{group.title}</p>
+                  <p className="text-sm font-semibold text-slate-700">{group.title}</p>
                   <p className="text-xs text-slate-500">{group.subtitle}</p>
                   <ul className="mt-2 space-y-2">
                     {group.methods.map((m) => (
@@ -425,7 +425,7 @@ export function MembershipPaymentModal({
                         <button
                           type="button"
                           onClick={() => pickMethod(m.id)}
-                          className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-900 shadow-sm transition hover:border-[#011B33]/40 hover:bg-sky-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#011B33]/30"
+                          className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 shadow-sm transition hover:border-[#011B33]/40 hover:bg-sky-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#011B33]/30"
                         >
                           <span>{m.label}</span>
                           {m.detail ? (
@@ -441,7 +441,7 @@ export function MembershipPaymentModal({
           ) : step === "bank_transfer" && bankTransfer ? (
             <div className="mt-5 space-y-4">
               <div className="rounded-xl border-2 border-[#011B33]/20 bg-sky-50/40 p-4">
-                <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                   <Building2 className="h-4 w-4 text-[#011B33]" aria-hidden />
                   Transfer to this Paystack account
                 </p>
@@ -471,11 +471,11 @@ export function MembershipPaymentModal({
                 <dl className="mt-4 space-y-3 text-sm">
                   <div>
                     <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Bank</dt>
-                    <dd className="font-medium text-slate-900">{bankTransfer.bankName}</dd>
+                    <dd className="font-medium text-slate-700">{bankTransfer.bankName}</dd>
                   </div>
                   <div>
                     <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account name</dt>
-                    <dd className="font-medium text-slate-900">{bankTransfer.accountName}</dd>
+                    <dd className="font-medium text-slate-700">{bankTransfer.accountName}</dd>
                   </div>
                   <div>
                     <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account number</dt>
@@ -505,7 +505,7 @@ export function MembershipPaymentModal({
                   {expiresLabel ? (
                     <div>
                       <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Expires</dt>
-                      <dd className="text-slate-800">{expiresLabel}</dd>
+                      <dd className="text-slate-600">{expiresLabel}</dd>
                     </div>
                   ) : null}
                 </dl>
@@ -546,7 +546,7 @@ export function MembershipPaymentModal({
 
               {method === "debit_credit_card" ? (
                 <div className="rounded-xl border border-slate-200 bg-white p-4">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                     <CreditCard className="h-4 w-4 text-[#011B33]" aria-hidden />
                     Visa · Mastercard
                   </p>
@@ -564,7 +564,7 @@ export function MembershipPaymentModal({
 
               {requiresPayerPhone(method) ? (
                 <div>
-                  <label htmlFor="pay-phone" className="mb-2 block text-sm font-medium text-slate-800">
+                  <label htmlFor="pay-phone" className="mb-2 block text-sm font-medium text-slate-600">
                     {method === "ussd" ? "Phone number (USSD wallet)" : "Mobile money number"}
                   </label>
                   <div className="flex overflow-hidden rounded-xl border border-slate-200 shadow-sm focus-within:border-[#011B33] focus-within:ring-2 focus-within:ring-[#011B33]/20">

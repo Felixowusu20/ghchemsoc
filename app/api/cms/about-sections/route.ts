@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
+import { prismaCmsErrorMessage } from "@/lib/cms-api-errors";
 import { prisma } from "@/lib/prisma";
 import type { AboutSection, Media } from "@prisma/client";
 
@@ -37,11 +38,16 @@ function serialize(r: AboutRow) {
 export async function GET(request: NextRequest) {
   const denied = await assertAdmin(request);
   if (denied) return denied;
-  const rows = await prisma.aboutSection.findMany({
-    orderBy: { sortOrder: "asc" },
-    include: { media: true },
-  });
-  return NextResponse.json(rows.map(serialize));
+  try {
+    const rows = await prisma.aboutSection.findMany({
+      orderBy: { sortOrder: "asc" },
+      include: { media: true },
+    });
+    return NextResponse.json(rows.map(serialize));
+  } catch (error) {
+    console.error("[cms/about-sections GET]", error);
+    return NextResponse.json({ error: prismaCmsErrorMessage(error, "load about sections") }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {

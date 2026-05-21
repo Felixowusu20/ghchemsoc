@@ -50,6 +50,8 @@
     line-height: 1.12;
     letter-spacing: -0.02em;
     color: var(--gcs-foreground-rich);
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .gcs-section-title {
@@ -144,7 +146,32 @@ body {
   overflow-x: hidden;
 }
 
-/* CMS / public news article HTML body */
+/* CMS / public rich HTML (news, member inbox, etc.) */
+.news-article-prose,
+.gcs-rich-html {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.news-article-prose table,
+.gcs-rich-html table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.news-article-prose pre,
+.gcs-rich-html pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.news-article-prose iframe,
+.gcs-rich-html iframe {
+  max-width: 100%;
+}
+
 .news-article-prose h2 {
   margin-top: 2rem;
   margin-bottom: 0.75rem;

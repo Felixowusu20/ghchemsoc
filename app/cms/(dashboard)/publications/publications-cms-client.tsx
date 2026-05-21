@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard } from "@/components/cms/cms-ui";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
@@ -99,7 +99,7 @@ export function PublicationsCmsClient() {
     setErr(null);
     const res = await fetch("/api/cms/publications", cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setRows([]);
       setLoading(false);
       return;
@@ -173,8 +173,8 @@ export function PublicationsCmsClient() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Public site</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Publications</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-600">
-          Manage journal issues like an OJS archive: cover and published date side by side, plus a table of articles with
-          PDF links. The layout appears on <span className="font-mono text-xs">/publications</span>.
+          Manage journal issues for the public site: cover and published date, plus a table of articles with PDF links.
+          Visitors see them on the Publications page.
         </p>
       </div>
       {err ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{err}</p> : null}

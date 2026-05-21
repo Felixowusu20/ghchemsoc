@@ -296,7 +296,7 @@ export function CmsRichTextEditor({
         </div>
       </div>
       <p className="text-xs text-gcs-muted-text">
-        Format text, add lists, links, and images. Images upload to Cloudinary under news/body.
+        Format text, add lists, links, and images. Images are uploaded when you insert them in the editor.
       </p>
     </div>
   );

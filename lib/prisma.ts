@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 /** Bump when Prisma schema changes so hot-reload recycles a stale global client. */
-const PRISMA_DEV_SCHEMA_VERSION = "2026-05-member-library";
+const PRISMA_DEV_SCHEMA_VERSION = "2026-05-society-resources";
 
 /** Delegates that must exist on a fresh client (schema additions). */
 const REQUIRED_DELEGATES = [
@@ -16,6 +16,8 @@ const REQUIRED_DELEGATES = [
   "memberPortalSettings",
   "memberBenefit",
   "memberLibraryItem",
+  "resourcesPageSettings",
+  "societyResource",
 ] as const;
 
 const globalForPrisma = globalThis as unknown as {
@@ -140,7 +142,7 @@ export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
       resetPrismaClient();
       client = ensurePrismaClient();
       value = Reflect.get(client, prop, client);
-      if (value === undefined && (REQUIRED_DELEGATES as readonly string[]).includes(prop)) {
+      if (value === undefined) {
         throw new Error(prismaDelegateMissingMessage(prop));
       }
     }

@@ -55,7 +55,7 @@ export default async function NewsArticlePage({ params }: Props) {
                 >
                   {fmt(post.date)}
                 </time>
-                <h1 className="mt-4 text-3xl font-medium tracking-tight text-gcs-foreground md:text-4xl">
+                <h1 className="mt-4 break-words text-2xl font-medium tracking-tight text-gcs-foreground sm:text-3xl md:text-4xl">
                   {post.title}
                 </h1>
                 {hasAuthor ? (

@@ -106,7 +106,7 @@ export default async function AboutPage() {
                 <p className="mt-3 text-xl font-bold tracking-tight text-white md:text-2xl">
                   Collaborate with GCS or explore membership
                 </p>
-                <p className="gcs-lead mt-3 text-blue-100/95">
+                <p className="mt-3 text-base leading-relaxed text-white md:text-lg">
                   Whether you are joining as an individual, institution, or partner, we will point you to the right
                   pathway.
                 </p>

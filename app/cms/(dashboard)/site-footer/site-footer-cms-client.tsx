@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
@@ -33,7 +33,7 @@ export function SiteFooterCmsClient() {
     setErr(null);
     const res = await fetch("/api/cms/site-footer", cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setForm(null);
       setLoading(false);
       return;
@@ -186,12 +186,12 @@ export function SiteFooterCmsClient() {
             <CmsFieldLabel>Trademark link URL</CmsFieldLabel>
             <CmsInput
               required
-              placeholder="/legal/trademark or https://…"
+              placeholder="https://… or contact page link"
               value={form.trademarkHref}
               onChange={(e) => setForm((f) => (f ? { ...f, trademarkHref: e.target.value } : f))}
             />
             <span className="mt-1 block text-xs text-slate-500">
-              Use a path like /contact or a full URL to your trademark page.
+              Use a link to a page on this site (for example the contact page) or a full web address to your trademark page.
             </span>
           </label>
           <label className="md:col-span-2">

@@ -240,7 +240,7 @@ export function MemberLibraryPage() {
                   accept=".pdf,image/jpeg,image/png,image/webp"
                   className="block w-full text-sm"
                 />
-                <p className="mt-1 text-xs text-gcs-muted-text">PDF or image, up to 10 MB. Requires Cloudinary in .env.</p>
+                <p className="mt-1 text-xs text-gcs-muted-text">PDF or image, up to 10 MB.</p>
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-semibold uppercase text-gcs-muted-text">Title</span>

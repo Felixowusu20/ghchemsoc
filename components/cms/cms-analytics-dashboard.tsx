@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BarChart3, Loader2, TrendingUp, Users, Eye } from "lucide-react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsMetricCard, CmsPageHero } from "@/components/cms/cms-page-chrome";
 import { CmsCard } from "@/components/cms/cms-ui";
 import type { CmsAnalyticsData, YearlyCount } from "@/lib/cms-analytics";
@@ -64,7 +64,7 @@ export function CmsAnalyticsDashboard() {
     try {
       const res = await fetch("/api/cms/analytics", cmsCredentials);
       if (!res.ok) {
-        setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+        setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
         setData(null);
         return;
       }
@@ -190,7 +190,7 @@ export function CmsAnalyticsDashboard() {
         <p className="mt-1 text-sm text-gcs-muted-text">
           Registered member counts use approval date only. Pending or rejected applications are excluded.
         </p>
-        <div className="mt-4 overflow-x-auto">
+        <div className="-mx-4 mt-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           <table className="w-full min-w-[520px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-gcs-muted-text">

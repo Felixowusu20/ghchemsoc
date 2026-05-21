@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, X, ArrowRight, Clock, TrendingUp, FlaskConical, Users, BookOpen, Calendar, Newspaper, MapPin } from "lucide-react"
+import { Search, X, ArrowRight, Clock, TrendingUp, FlaskConical, Users, BookOpen, Calendar, Newspaper, MapPin, FolderOpen } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -11,9 +11,10 @@ import { useRouter } from "next/navigation"
 const searchData = {
     programs: [
         { id: 1, title: "Membership", description: "Join or renew your GCS membership", href: "/membership", icon: Users },
-        { id: 2, title: "Publications hub", description: "Journals, articles, and research outputs", href: "/publications", icon: BookOpen },
-        { id: 3, title: "Conferences & symposia", description: "Upcoming scientific meetings", href: "/events", icon: Calendar },
-        { id: 4, title: "News & announcements", description: "Society news and outreach", href: "/news", icon: Newspaper },
+        { id: 2, title: "Resources", description: "Videos, documents, and reference materials", href: "/resources", icon: FolderOpen },
+        { id: 3, title: "Publications hub", description: "Journals, articles, and research outputs", href: "/publications", icon: BookOpen },
+        { id: 4, title: "Conferences & symposia", description: "Upcoming scientific meetings", href: "/events", icon: Calendar },
+        { id: 5, title: "News & announcements", description: "Society news and outreach", href: "/news", icon: Newspaper },
     ],
     pages: [
         { id: 1, title: "About the Society", description: "Mission, structure, and leadership", href: "/about", icon: MapPin },

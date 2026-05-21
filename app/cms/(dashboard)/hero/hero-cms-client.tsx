@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
@@ -92,7 +92,7 @@ export function HeroCmsClient() {
     setErr(null);
     const res = await fetch("/api/cms/hero-slides?admin=1", cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setSlides([]);
       setLoading(false);
       return;
@@ -190,7 +190,7 @@ export function HeroCmsClient() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Homepage</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Hero carousel</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Images are uploaded to Cloudinary only—no pasted URLs. Each slide appears on the public homepage when published.
+          Upload slide images here (pasted image links are not used). Each published slide appears on the public homepage.
         </p>
       </div>
 
@@ -288,7 +288,7 @@ export function HeroCmsClient() {
       </CmsCard>
 
       <div>
-        <CmsSectionTitle description="Drag to reorder in the database by sort order; delete to remove from Cloudinary when applicable.">
+        <CmsSectionTitle description="Use sort order to control slide sequence. Deleting a slide removes it from the homepage.">
           Published slides
         </CmsSectionTitle>
         {slides.length === 0 ? <p className="mt-4 text-sm text-slate-500">No slides yet.</p> : null}

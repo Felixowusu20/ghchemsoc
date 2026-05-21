@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CalendarDays, FileText, ImageIcon, Newspaper, User } from "lucide-react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
@@ -94,7 +94,7 @@ export function NewsCmsClient() {
     setErr(null);
     const res = await fetch("/api/cms/news-items", cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setRows([]);
       setLoading(false);
       return;
@@ -332,7 +332,10 @@ export function NewsCmsClient() {
                   )}
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>
-                    <p className="font-mono text-xs text-slate-500">{r.slug}</p>
+                    <p className="break-all text-xs text-slate-500">
+                      <span className="font-medium text-slate-600">Address name: </span>
+                      {r.slug}
+                    </p>
                     <p className="mt-1 text-xs text-slate-500">
                       {fmtListDate(r.date)}
                       {r.authorName ? ` · ${r.authorName}` : ""}

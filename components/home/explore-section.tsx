@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExploreHeadline } from "@/components/home/explore-headline";
 import { getHomepageExploreForPublic } from "@/lib/cms-queries";
 
 export async function ExploreSection() {
@@ -9,17 +10,14 @@ export async function ExploreSection() {
 
   return (
     <section
-      className="w-full overflow-hidden bg-gcs-surface px-6 py-20 text-gcs-foreground md:px-12 md:py-24"
+      className="w-full overflow-hidden bg-gcs-surface px-4 py-16 text-gcs-foreground sm:px-6 sm:py-20 md:px-12 md:py-24"
       data-aos="fade-up"
     >
       <div className="mb-14 flex flex-col items-center text-center md:mb-16" data-aos="fade-up" data-aos-delay="80">
         <div className="mb-6 inline-flex cursor-default items-center gap-2 rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm transition-colors">
           {s.missionEyebrow} <ArrowRight className="h-3.5 w-3.5 text-gcs-primary" />
         </div>
-        <h2 className="mx-auto max-w-4xl text-4xl font-medium leading-[1.1] tracking-tight md:text-5xl lg:text-[2.75rem] lg:leading-[1.08]">
-          {s.headlineLine1} <br className="hidden md:block" />
-          {s.headlineLine2}
-        </h2>
+        <ExploreHeadline line1={s.headlineLine1} line2={s.headlineLine2} />
       </div>
 
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
@@ -27,7 +25,7 @@ export async function ExploreSection() {
           <div className="mb-6 inline-block self-start rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
             {s.aboutEyebrow}
           </div>
-          <p className="mb-8 text-xl font-medium leading-relaxed text-gcs-foreground md:text-2xl">{s.aboutBody}</p>
+          <p className="mb-8 text-lg font-medium leading-relaxed text-gcs-foreground sm:text-xl md:text-2xl">{s.aboutBody}</p>
           <Button
             asChild
             className="group mt-auto h-12 w-fit gap-3 rounded-full border-0 bg-gcs-primary px-6 text-base text-white shadow-sm hover:bg-gcs-primary-hover"
@@ -41,7 +39,7 @@ export async function ExploreSection() {
           </Button>
         </div>
 
-        <div className="group relative h-[420px] overflow-hidden rounded-[2.5rem] sm:h-[480px] lg:col-span-5 lg:h-[500px]" data-aos="fade-up" data-aos-delay="120">
+        <div className="group relative h-[280px] overflow-hidden rounded-3xl sm:h-[420px] sm:rounded-[2.5rem] md:h-[480px] lg:col-span-5 lg:h-[500px]" data-aos="fade-up" data-aos-delay="120">
           <Image
             src={s.mainImageUrl}
             alt={s.mainImageAlt}
@@ -55,7 +53,7 @@ export async function ExploreSection() {
             {s.imageBadge}
           </div>
 
-          <p className="absolute right-8 top-8 max-w-[220px] text-right text-lg font-medium leading-snug text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <p className="absolute right-4 top-4 hidden max-w-[220px] text-right text-sm font-medium leading-snug text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 sm:right-8 sm:top-8 sm:block sm:text-lg">
             {s.imageHoverQuote}
           </p>
 

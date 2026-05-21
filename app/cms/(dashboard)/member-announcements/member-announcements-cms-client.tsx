@@ -14,7 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -103,7 +103,7 @@ export function MemberAnnouncementsCmsClient() {
     setErr(null);
     const res = await fetch("/api/cms/member-announcements", cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setLoading(false);
       return;
     }
@@ -325,7 +325,7 @@ export function MemberAnnouncementsCmsClient() {
                 <CmsInput
                   value={form.publicHref}
                   onChange={(e) => setForm((f) => ({ ...f, publicHref: e.target.value }))}
-                  placeholder="https://…/news/… when live"
+                  placeholder="https://… when the article is live"
                 />
               </label>
               <label>

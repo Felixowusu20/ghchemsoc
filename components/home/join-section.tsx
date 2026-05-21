@@ -70,7 +70,7 @@ export function JoinSection({ cms }: Props) {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gcs-border bg-gcs-surface px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
             {eyebrow} <ArrowRight className="h-3.5 w-3.5 text-gcs-primary" aria-hidden />
           </div>
-          <h2 className="mx-auto max-w-3xl text-4xl font-medium tracking-tight text-gcs-foreground md:text-5xl lg:text-[2.75rem] lg:leading-[1.08]">
+          <h2 className="mx-auto max-w-3xl break-words text-3xl font-medium tracking-tight text-gcs-foreground sm:text-4xl md:text-5xl lg:text-[2.75rem] lg:leading-[1.08]">
             {title}
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-gcs-muted-text md:text-lg">{subtitle}</p>

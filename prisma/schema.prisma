@@ -49,6 +49,7 @@ model Media {
   homepageExploreSecondaryImage HomepageExploreSettings? @relation("HomepageExploreSecondaryImage")
   homepageEventsSpotlightImage HomepageEventsSettings? @relation("HomepageEventsSpotlightImage")
   partnershipCards PartnershipCard[]
+  societyResources SocietyResource[]
   siteFooterLeftImage SiteFooterSettings? @relation("SiteFooterLeftImage")
   siteFooterRightImage SiteFooterSettings? @relation("SiteFooterRightImage")
 }
@@ -422,6 +423,56 @@ model NewsItem {
   @@index([published])
   @@index([sortOrder])
   @@index([date])
+}
+
+//
+// =======================
+// PUBLIC RESOURCES (VIDEOS, DOCUMENTS, LINKS)
+// =======================
+//
+
+enum SocietyResourceKind {
+  video
+  document
+  link
+  other
+}
+
+model ResourcesPageSettings {
+  id String @id @default("resources_page")
+
+  eyebrow  String @default("Resources")
+  headline String @default("Learning & reference materials")
+  lead     String @db.Text
+
+  updatedAt DateTime @updatedAt
+}
+
+model SocietyResource {
+  id        String  @id @default(cuid())
+  published Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  kind        SocietyResourceKind
+  title       String
+  description String @db.Text
+  /// Video embed URL, hosted file URL, document PDF, or external link.
+  url         String?
+  /// Cloudinary public_id when `url` is an uploaded file (video or document).
+  urlPublicId String?
+
+  mediaId String?
+  media   Media? @relation(fields: [mediaId], references: [id])
+
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([kind])
+  @@index([sortOrder])
+  @@index([publishedAt])
 }
 
 //

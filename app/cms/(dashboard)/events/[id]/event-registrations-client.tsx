@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import type { RegistrationFieldDef } from "@/lib/event-registration-form";
 import { createEmptyRegistrationField, parseRegistrationFormFields } from "@/lib/event-registration-form";
 import type { Prisma } from "@prisma/client";
@@ -33,7 +33,7 @@ export function EventRegistrationsClient({ eventId }: { eventId: string }) {
     setErr(null);
     const res = await fetch(`/api/cms/society-events/${eventId}/registrations`, cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setLoading(false);
       return;
     }
