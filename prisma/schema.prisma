@@ -406,6 +406,9 @@ model NewsItem {
   excerpt String
   body   String?
 
+  authorName String?
+  authorRole String?
+
   date DateTime
 
   sortOrder Int @default(0)

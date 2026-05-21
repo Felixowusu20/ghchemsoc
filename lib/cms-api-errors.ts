@@ -32,6 +32,9 @@ export function prismaCmsErrorMessage(err: unknown, context = "save"): string {
   if (/SiteFooterSettings|trademarkLabel|trademarkHref|trademarkNotice/i.test(msg)) {
     return "Footer database is missing trademark fields. Run: npx prisma db execute --file prisma/migrations/20260517180000_add_footer_trademark_fields/migration.sql — then restart the dev server.";
   }
+  if (/authorName|authorRole/i.test(msg) && /(does not exist|column)/i.test(msg)) {
+    return "News author fields are missing from the database. Run: npx prisma migrate deploy — then restart the dev server.";
+  }
   if (/Unknown arg [`']?trademark/i.test(msg)) {
     return "Server is using an outdated database client. Stop the dev server, run npx prisma generate, then start it again.";
   }

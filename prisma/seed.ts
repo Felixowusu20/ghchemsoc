@@ -168,7 +168,10 @@ async function main() {
       title: "GCS welcomes delegates for the national chemistry summit in Accra",
       excerpt:
         "Plenary sessions on sustainable synthesis, teaching innovation, and strengthening links between universities and chemical industry partners across Ghana.",
-      body: "Full announcement details will appear here as the programme is finalised.",
+      body:
+        "<p>Delegates from universities, industry, and government agencies gathered in Accra for three days of plenary sessions, poster presentations, and policy dialogue on the future of chemistry education and research in Ghana.</p><p><strong>Programme highlights</strong> included panels on green synthesis, laboratory safety standards, and partnerships between academia and the private sector.</p>",
+      authorName: "Communications Office",
+      authorRole: "Ghana Chemical Society",
       date: new Date("2026-05-12T10:00:00Z"),
       published: true,
       sortOrder: 0,
