@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import {
   ExternalLink,
   FileText,
+  Library,
   Link2,
   Loader2,
   StickyNote,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { MemberPortalPageHeader, MemberPortalPanel } from "@/components/membership/member-portal-ui";
 import { useMemberPortal } from "@/components/membership/member-portal-context";
 import type { MemberLibraryItemDto, MemberLibraryItemType } from "@/lib/member-library";
 import { gooeyToast } from "@/lib/toast";
@@ -145,19 +147,19 @@ export function MemberLibraryPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-gcs-foreground md:text-3xl">My library</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gcs-muted-text">
-          Private links, notes, and files only you can see. Use this for CPD materials, lab references, or anything you
-          want to keep with your membership.
+    <div className="space-y-7 sm:space-y-9">
+      <MemberPortalPageHeader
+        icon={Library}
+        iconClassName="bg-violet-50 text-violet-800 ring-violet-500/15"
+        title="My library"
+        description="Private links, notes, and files only you can see. Use this for CPD materials, lab references, or anything you want to keep with your membership."
+      />
+
+      {!serverSession ? (
+        <p className="rounded-xl border border-amber-200/90 bg-gradient-to-r from-amber-50 to-white px-4 py-3.5 text-sm text-amber-950 shadow-sm">
+          Sign in with your email and member ID to save items to your account across devices.
         </p>
-        {!serverSession ? (
-          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            Sign in with your email and member ID to save items to your account across devices.
-          </p>
-        ) : null}
-      </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {(["all", "link", "note", "file"] as const).map((key) => (
@@ -177,12 +179,12 @@ export function MemberLibraryPage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <Button
           type="button"
           variant="outline"
           disabled={!serverSession}
-          className="rounded-full border-gcs-border"
+          className="h-11 w-full rounded-full border-gcs-border sm:w-auto"
           onClick={() => setAddMode("link")}
         >
           <Link2 className="mr-2 h-4 w-4" />
@@ -192,7 +194,7 @@ export function MemberLibraryPage() {
           type="button"
           variant="outline"
           disabled={!serverSession}
-          className="rounded-full border-gcs-border"
+          className="h-11 w-full rounded-full border-gcs-border sm:w-auto"
           onClick={() => setAddMode("note")}
         >
           <StickyNote className="mr-2 h-4 w-4" />
@@ -202,7 +204,7 @@ export function MemberLibraryPage() {
           type="button"
           variant="outline"
           disabled={!serverSession}
-          className="rounded-full border-gcs-border"
+          className="h-11 w-full rounded-full border-gcs-border sm:w-auto"
           onClick={() => setAddMode("file")}
         >
           <Upload className="mr-2 h-4 w-4" />
@@ -214,7 +216,7 @@ export function MemberLibraryPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-gcs-primary/20 bg-white p-6 shadow-sm"
+          className="rounded-2xl border border-gcs-primary/25 bg-gradient-to-br from-gcs-primary/[0.04] to-white p-5 shadow-sm sm:p-6"
         >
           <div className="mb-4 flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold text-gcs-foreground">
@@ -309,7 +311,7 @@ export function MemberLibraryPage() {
           {filtered.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col rounded-2xl border border-gcs-border bg-white p-5 shadow-sm transition hover:border-gcs-primary/25"
+              className="flex flex-col rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-gcs-primary/25 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gcs-primary/10 text-gcs-primary">
@@ -326,8 +328,10 @@ export function MemberLibraryPage() {
                   </button>
                 </div>
               </div>
-              <h3 className="mt-3 text-sm font-semibold text-gcs-foreground">{item.title}</h3>
-              {item.body ? <p className="mt-2 line-clamp-4 text-sm text-gcs-muted-text">{item.body}</p> : null}
+              <h3 className="mt-3 break-words text-sm font-semibold text-gcs-foreground">{item.title}</h3>
+              {item.body ? (
+                <p className="mt-2 line-clamp-4 break-words text-sm text-gcs-muted-text">{item.body}</p>
+              ) : null}
               {item.type === "file" && item.fileBytes != null ? (
                 <p className="mt-2 text-xs text-gcs-muted-text">{formatBytes(item.fileBytes)}</p>
               ) : null}
@@ -348,7 +352,7 @@ export function MemberLibraryPage() {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gcs-primary hover:underline"
+                  className="mt-4 inline-flex max-w-full items-center gap-1 break-all text-sm font-semibold text-gcs-primary hover:underline"
                 >
                   {item.type === "file" ? "Open file" : "Visit link"}
                   <ExternalLink className="h-3.5 w-3.5" />

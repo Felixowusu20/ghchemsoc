@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { MemberPortalPageHeader, MemberPortalPanel } from "@/components/membership/member-portal-ui";
 import { cn } from "@/lib/utils";
 
 type InboxItem = {
@@ -142,55 +143,45 @@ export function MemberInboxPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
-            <InboxIcon className="h-5 w-5" aria-hidden />
+    <div className="space-y-7 sm:space-y-9">
+      <MemberPortalPageHeader
+        icon={InboxIcon}
+        iconClassName="relative bg-blue-50 text-blue-700 ring-blue-500/15"
+        title="Inbox"
+        description="Bulletins, conference resources, videos, and other members-only updates from the Ghana Chemical Society. The same content is also delivered to your registered email address."
+        action={
+          <button
+            type="button"
+            onClick={() => void markAllRead()}
+            disabled={unreadCount === 0 || marking}
+            className={cn(
+              "inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition sm:w-auto",
+              unreadCount === 0 || marking
+                ? "cursor-not-allowed border-slate-200 text-gcs-muted-text/50"
+                : "border-slate-200 bg-white text-gcs-foreground shadow-sm hover:border-gcs-primary/30 hover:bg-gcs-primary/5 hover:text-gcs-primary"
+            )}
+          >
+            {marking ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CheckCheck className="h-4 w-4" aria-hidden />}
+            Mark all read
             {unreadCount > 0 ? (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white">
+              <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             ) : null}
-          </span>
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-gcs-foreground md:text-3xl">Inbox</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gcs-muted-text">
-              Bulletins, conference resources, videos, and other members-only updates from the Ghana Chemical
-              Society. The same content is also delivered to your registered email address. Open a message to read it
-              — you can remove it from your inbox after viewing.
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => void markAllRead()}
-          disabled={unreadCount === 0 || marking}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition",
-            unreadCount === 0 || marking
-              ? "cursor-not-allowed border-gcs-border/60 text-gcs-muted-text/60"
-              : "border-gcs-border text-gcs-foreground hover:bg-gcs-primary/5 hover:text-gcs-primary"
-          )}
-        >
-          {marking ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CheckCheck className="h-4 w-4" aria-hidden />}
-          Mark all as read
-        </button>
-      </div>
+          </button>
+        }
+      />
 
       {error ? (
         <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
       ) : null}
 
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-gcs-border bg-white shadow-sm"
-      >
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <MemberPortalPanel noPadding>
         {loading ? (
-          <p className="px-6 py-10 text-center text-sm text-gcs-muted-text">Loading your inbox…</p>
+          <p className="px-4 py-10 text-center text-sm text-gcs-muted-text sm:px-6">Loading your inbox…</p>
         ) : items.length === 0 ? (
-          <div className="px-6 py-12 text-center">
+          <div className="px-4 py-12 text-center sm:px-6">
             <MailOpen className="mx-auto h-8 w-8 text-gcs-muted-text/60" aria-hidden />
             <p className="mt-3 text-sm font-medium text-gcs-foreground">No messages yet</p>
             <p className="mt-1 text-sm text-gcs-muted-text">
@@ -235,12 +226,12 @@ export function MemberInboxPage() {
                     </div>
                   </button>
                   {isOpen ? (
-                    <div className="border-t border-gcs-border/40 bg-white px-5 py-5">
+                    <div className="border-t border-gcs-border/40 bg-white px-4 py-5 sm:px-5">
                       <div
-                        className="gcs-rich-html prose prose-sm max-w-none overflow-x-auto prose-headings:font-semibold prose-p:text-gcs-foreground/90"
+                        className="gcs-rich-html prose prose-sm max-w-none break-words overflow-x-auto prose-headings:font-semibold prose-p:text-gcs-foreground/90"
                         dangerouslySetInnerHTML={{ __html: item.bodyHtml }}
                       />
-                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+                      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                         {item.publicHref ? (
                           <a
                             href={item.publicHref}
@@ -258,7 +249,7 @@ export function MemberInboxPage() {
                           type="button"
                           onClick={() => requestDelete(item)}
                           disabled={deletingId === item.deliveryId}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3.5 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:py-1.5"
                         >
                           {deletingId === item.deliveryId ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -275,7 +266,8 @@ export function MemberInboxPage() {
             })}
           </ul>
         )}
-      </motion.section>
+        </MemberPortalPanel>
+      </motion.div>
 
       <ConfirmDialog
         open={pendingDelete !== null}
