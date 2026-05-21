@@ -41,7 +41,7 @@ export function ResourceCard({ item }: { item: SocietyResourcePublic; featured?:
         "shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)] ring-1 ring-gcs-border/10",
         href && "hover:-translate-y-1 hover:border-gcs-primary/25",
         style.accent,
-        href && "hover:shadow-[0_20px_50px_-20px_rgba(29,78,216,0.25)]"
+        href && "hover:shadow-[0_20px_50px_-20px_rgba(29,78,216,0.22)]"
       )}
     >
       <div className="relative overflow-hidden">

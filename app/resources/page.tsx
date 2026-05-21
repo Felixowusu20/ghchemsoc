@@ -26,8 +26,8 @@ export default async function ResourcesPage() {
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-white via-[#f8fafc] to-white" />
           <div className="absolute -top-40 left-[10%] h-[420px] w-[420px] rounded-full bg-gcs-primary/[0.07] blur-3xl" />
-          <div className="absolute top-[20%] right-0 h-[380px] w-[480px] translate-x-1/4 rounded-full bg-sky-300/20 blur-3xl" />
-          <div className="absolute bottom-0 left-1/2 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-indigo-200/15 blur-3xl" />
+          <div className="absolute top-[20%] right-0 h-[380px] w-[480px] translate-x-1/4 rounded-full bg-blue-300/25 blur-3xl" />
+          <div className="absolute bottom-0 left-1/2 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-blue-200/20 blur-3xl" />
           <div
             className="absolute inset-0 opacity-[0.025] [background-image:radial-gradient(circle_at_1px_1px,#1e40af_1px,transparent_0)] [background-size:28px_28px]"
             aria-hidden
