@@ -146,6 +146,13 @@ body {
   overflow-x: hidden;
 }
 
+/* Member portfolio: match page chrome so overscroll / rubber-band never flashes white */
+html:has([data-member-portal]),
+html:has([data-member-portal]) body {
+  background-color: #f1f5f9;
+  overscroll-behavior-y: none;
+}
+
 /* CMS / public rich HTML (news, member inbox, etc.) */
 .news-article-prose,
 .gcs-rich-html {

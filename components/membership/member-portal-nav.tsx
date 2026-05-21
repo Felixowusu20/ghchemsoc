@@ -162,7 +162,7 @@ export function MemberPortalTabBar() {
   return (
       <div
         ref={moreRef}
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200/90 bg-white/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_32px_-8px_rgba(15,23,42,0.12)] backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-4px_24px_-4px_rgba(15,23,42,0.1)] lg:hidden"
         role="navigation"
         aria-label="Member area"
       >
