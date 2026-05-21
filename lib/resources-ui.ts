@@ -1,5 +1,11 @@
 import type { SocietyResourcePublic } from "@/lib/resources-page";
 
+/** Unified blue palette for all resource types (GCS brand). */
+const blueBadge = "bg-gcs-primary text-white";
+const bluePlaceholder = "from-blue-50 via-sky-50/80 to-white";
+const blueIconWrap = "bg-white text-gcs-primary ring-blue-200/80";
+const blueAccent = "group-hover:shadow-gcs-primary/20";
+
 export const RESOURCE_KIND_STYLES: Record<
   SocietyResourcePublic["kind"],
   {
@@ -12,30 +18,30 @@ export const RESOURCE_KIND_STYLES: Record<
 > = {
   video: {
     label: "Video",
-    badge: "bg-indigo-500/95 text-white",
-    placeholder: "from-slate-900 via-indigo-950 to-slate-900",
+    badge: blueBadge,
+    placeholder: "from-slate-900 via-blue-950 to-slate-900",
     iconWrap: "bg-white/10 text-white ring-white/20",
-    accent: "group-hover:shadow-indigo-500/15",
+    accent: blueAccent,
   },
   document: {
     label: "Document",
-    badge: "bg-amber-500/95 text-white",
-    placeholder: "from-amber-50 via-orange-50/80 to-white",
-    iconWrap: "bg-white text-amber-700 ring-amber-200/80",
-    accent: "group-hover:shadow-amber-500/15",
+    badge: blueBadge,
+    placeholder: bluePlaceholder,
+    iconWrap: blueIconWrap,
+    accent: blueAccent,
   },
   link: {
     label: "Link",
-    badge: "bg-sky-500/95 text-white",
-    placeholder: "from-sky-50 via-cyan-50/50 to-white",
-    iconWrap: "bg-white text-sky-700 ring-sky-200/80",
-    accent: "group-hover:shadow-sky-500/15",
+    badge: blueBadge,
+    placeholder: bluePlaceholder,
+    iconWrap: blueIconWrap,
+    accent: blueAccent,
   },
   other: {
     label: "Other",
-    badge: "bg-violet-500/95 text-white",
-    placeholder: "from-violet-50 via-fuchsia-50/40 to-white",
-    iconWrap: "bg-white text-violet-700 ring-violet-200/80",
-    accent: "group-hover:shadow-violet-500/15",
+    badge: blueBadge,
+    placeholder: bluePlaceholder,
+    iconWrap: blueIconWrap,
+    accent: blueAccent,
   },
 };

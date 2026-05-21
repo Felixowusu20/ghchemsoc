@@ -10,9 +10,6 @@ import {
   uploadCmsVideo,
 } from "@/lib/cloudinary-server";
 
-/** Large video uploads (chunked to Cloudinary). */
-export const maxDuration = 600;
-
 /** Whether Cloudinary credentials are set (uploads only — existing image URLs in the DB still work). */
 export async function GET(request: NextRequest) {
   const denied = await assertAdmin(request);
