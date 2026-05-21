@@ -1,6 +1,9 @@
 import type { ZodError } from "zod";
 import { Prisma } from "@prisma/client";
 
+/** Shown in the admin UI when the session cookie is missing or expired. */
+export const CMS_UNAUTHORIZED_MESSAGE = "Your session has expired. Please sign in again.";
+
 export function formatZodError(error: ZodError): string {
   const flat = error.flatten();
   const parts: string[] = [...flat.formErrors];
@@ -13,36 +16,21 @@ export function formatZodError(error: ZodError): string {
 export function prismaCmsErrorMessage(err: unknown, context = "save"): string {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === "P2021") {
-      return "Database tables are not set up yet. Apply pending migrations, then restart the dev server.";
+      return "The site database is not fully set up yet. Ask your site administrator to complete setup.";
     }
     if (err.code === "P1001" || err.code === "P1002" || err.code === "P1017") {
       return "Could not reach the database. Wait a moment and try again.";
     }
   }
-  const msg = err instanceof Error ? err.message : String(err);
-  if (/Cannot read properties of undefined \(reading 'findUnique'\)/i.test(msg)) {
-    return "Server is using an outdated Prisma client. Stop the dev server, run npx prisma generate, then start it again.";
-  }
-  if (/Prisma client is missing|outdated after a schema update/i.test(msg)) {
-    return msg;
-  }
-  if (/MemberPortalSettings|MemberBenefit/i.test(msg)) {
-    return "Member portal tables are not set up yet. Run: npx prisma db push — then restart the dev server.";
-  }
-  if (/SiteFooterSettings|trademarkLabel|trademarkHref|trademarkNotice/i.test(msg)) {
-    return "Footer database is missing trademark fields. Run: npx prisma db execute --file prisma/migrations/20260517180000_add_footer_trademark_fields/migration.sql — then restart the dev server.";
-  }
-  if (/Unknown arg [`']?trademark/i.test(msg)) {
-    return "Server is using an outdated database client. Stop the dev server, run npx prisma generate, then start it again.";
-  }
   if (process.env.NODE_ENV === "development") {
+    const msg = err instanceof Error ? err.message : String(err);
     return `Could not ${context}: ${msg}`;
   }
   return `Could not ${context}. Please try again.`;
 }
 
 export async function readCmsErrorResponse(res: Response): Promise<string> {
-  if (res.status === 401) return "Sign in at /cms/login";
+  if (res.status === 401) return CMS_UNAUTHORIZED_MESSAGE;
   const text = await res.text();
   if (!text.trim()) return `Request failed (${res.status})`;
   try {

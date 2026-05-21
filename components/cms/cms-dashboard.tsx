@@ -43,6 +43,7 @@ function buildSections(counts: CmsNotificationCounts): DashboardModuleSection[] 
       items: [
         { href: "/cms/about", title: "About", desc: "Who we are and what we do.", icon: "FileText" },
         { href: "/cms/news", title: "News", desc: "Announcements and articles.", icon: "Newspaper" },
+        { href: "/cms/resources", title: "Resources", desc: "Videos, documents, and useful links.", icon: "FolderOpen" },
         { href: "/cms/publications", title: "Publications", desc: "Journals and society publications.", icon: "BookOpen" },
         { href: "/cms/events", title: "Events", desc: "Conferences, workshops, and meetings.", icon: "Calendar" },
         { href: "/cms/contact", title: "Contact page", desc: "How the public can reach the society.", icon: "MessageCircle" },

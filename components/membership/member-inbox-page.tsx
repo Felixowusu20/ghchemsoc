@@ -237,7 +237,7 @@ export function MemberInboxPage() {
                   {isOpen ? (
                     <div className="border-t border-gcs-border/40 bg-white px-5 py-5">
                       <div
-                        className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:text-gcs-foreground/90"
+                        className="gcs-rich-html prose prose-sm max-w-none overflow-x-auto prose-headings:font-semibold prose-p:text-gcs-foreground/90"
                         dangerouslySetInnerHTML={{ __html: item.bodyHtml }}
                       />
                       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">

@@ -30,19 +30,22 @@ import {
   siteFooterDefaults,
   type SiteFooterPublic,
 } from "@/lib/site-footer";
+import { aboutSectionsPublicFallback } from "@/lib/about-section-defaults";
+import { fetchPublishedAboutSections } from "@/lib/about-sections";
+import {
+  RESOURCES_PAGE_DEFAULTS,
+  RESOURCES_PAGE_ID,
+  type ResourcesPagePublic,
+  type SocietyResourcePublic,
+} from "@/lib/resources-page";
 
 export type { HomepageExplorePublic, HomepageEventsPublic, HomepagePartnershipsPublic };
 
 export async function getPublishedAboutSections() {
   return withDbFallback(
     "getPublishedAboutSections",
-    () =>
-      prisma.aboutSection.findMany({
-        where: { published: true },
-        orderBy: { sortOrder: "asc" },
-        include: { media: true },
-      }),
-    []
+    () => fetchPublishedAboutSections(),
+    aboutSectionsPublicFallback()
   );
 }
 
@@ -298,3 +301,87 @@ export async function getPartnershipCardsForCms() {
 }
 
 export { getMemberPortalForPublic } from "@/lib/member-portal-queries";
+
+function mapSocietyResourcePublic(
+  r: {
+    id: string;
+    kind: SocietyResourcePublic["kind"];
+    title: string;
+    description: string;
+    url: string | null;
+    urlPublicId: string | null;
+    publishedAt: Date | null;
+    media: { url: string; alt: string | null } | null;
+  }
+): SocietyResourcePublic {
+  return {
+    id: r.id,
+    kind: r.kind,
+    title: r.title,
+    description: r.description,
+    url: r.url,
+    urlPublicId: r.urlPublicId ?? null,
+    imageUrl: r.media?.url ?? null,
+    imageAlt: r.media?.alt ?? null,
+    publishedAt: r.publishedAt?.toISOString() ?? null,
+  };
+}
+
+function isResourcesTableMissing(error: unknown): boolean {
+  const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+  if (code === "P2021" || code === "P2022") return true;
+  const msg = error instanceof Error ? error.message : String(error);
+  return /ResourcesPageSettings|SocietyResource|does not exist/i.test(msg);
+}
+
+export async function getResourcesPageForPublic(): Promise<ResourcesPagePublic> {
+  try {
+    return await withDbFallback(
+      "getResourcesPageForPublic",
+      async () => {
+        let row = await prisma.resourcesPageSettings.findUnique({
+          where: { id: RESOURCES_PAGE_ID },
+        });
+        if (!row) {
+          row = await prisma.resourcesPageSettings.create({
+            data: {
+              id: RESOURCES_PAGE_ID,
+              eyebrow: RESOURCES_PAGE_DEFAULTS.eyebrow,
+              headline: RESOURCES_PAGE_DEFAULTS.headline,
+              lead: RESOURCES_PAGE_DEFAULTS.lead,
+            },
+          });
+        }
+        return {
+          eyebrow: row.eyebrow,
+          headline: row.headline,
+          lead: row.lead,
+        };
+      },
+      { ...RESOURCES_PAGE_DEFAULTS }
+    );
+  } catch (error) {
+    if (isResourcesTableMissing(error)) return { ...RESOURCES_PAGE_DEFAULTS };
+    throw error;
+  }
+}
+
+export async function getPublishedSocietyResources(): Promise<SocietyResourcePublic[]> {
+  try {
+    return await withDbFallback(
+      "getPublishedSocietyResources",
+      async () => {
+        const rows = await prisma.societyResource.findMany({
+          where: { published: true },
+          orderBy: [{ sortOrder: "asc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
+          include: { media: true },
+        });
+        return rows.map(mapSocietyResourcePublic);
+      },
+      []
+    );
+  } catch (error) {
+    if (isResourcesTableMissing(error)) return [];
+    throw error;
+  }
+}

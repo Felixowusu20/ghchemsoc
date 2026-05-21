@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
@@ -84,7 +84,7 @@ export function EventsCmsClient() {
     setErr(null);
     const res = await fetch("/api/cms/society-events", cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setRows([]);
       setLoading(false);
       return;
@@ -206,7 +206,7 @@ export function EventsCmsClient() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Public site</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Events</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Conferences on <span className="font-medium text-slate-800">/events</span>. Use the homepage spotlight below for image and text side by side; mark one event as featured for the large card on the events page.
+          Conferences and meetings listed on the public Events page. Use the homepage spotlight below for image and text side by side; mark one event as featured for the large card on the events page.
         </p>
       </div>
       {err ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{err}</p> : null}
@@ -260,7 +260,7 @@ export function EventsCmsClient() {
               rows={6}
               value={form.body}
               onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
-              placeholder="Shown on the public event page (/events/…). Use blank lines between paragraphs."
+              placeholder="Shown on the public event detail page. Use blank lines between paragraphs."
             />
           </label>
           <label>
@@ -293,7 +293,7 @@ export function EventsCmsClient() {
           </label>
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700 md:col-span-2">
             <input type="checkbox" checked={form.featured} onChange={(e) => setForm((f) => ({ ...f, featured: e.target.checked }))} />
-            Featured (large card on /events when set)
+            Featured (large card on the Events page when set)
           </label>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
             <CmsButton type="submit">{editingId ? "Save changes" : "Create event"}</CmsButton>

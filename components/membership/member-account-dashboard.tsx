@@ -445,7 +445,7 @@ export function MemberAccountDashboard() {
                         </div>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
                     <table className="min-w-full text-left text-sm">
                         <thead className="border-b border-gcs-border/60 bg-neutral-50/80 text-[11px] font-semibold uppercase tracking-wide text-gcs-muted-text">
                             <tr>

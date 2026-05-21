@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
@@ -53,7 +53,7 @@ export function HomepageEventsSpotlightCms() {
     setErr(null);
     const res = await fetch("/api/cms/homepage-events", cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setForm(null);
       setLoading(false);
       return;

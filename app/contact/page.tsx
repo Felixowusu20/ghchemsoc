@@ -95,7 +95,7 @@ export default async function ContactPage() {
 
               <div className="border-t border-gcs-border/50 bg-white p-6 md:border-t-0 md:border-l md:p-10 lg:col-span-2">
                 <h3 className="text-lg font-semibold tracking-tight">Direct details</h3>
-                <p className="mt-2 text-sm text-gcs-muted-text">Managed in the CMS — update cards anytime from /cms/contact.</p>
+                <p className="mt-2 text-sm text-gcs-muted-text">Contact details are managed by the society secretariat and updated on this page when needed.</p>
                 <ul className="mt-8 space-y-6">
                   {cards.map((item) => {
                     const Icon = iconFor(item.icon);
@@ -106,7 +106,7 @@ export default async function ContactPage() {
                         </div>
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-gcs-muted-text">{item.title}</p>
-                          <p className="mt-1 font-semibold text-gcs-foreground">{item.value}</p>
+                          <p className="mt-1 break-words font-semibold text-gcs-foreground">{item.value}</p>
                           <p className="mt-1 text-sm text-gcs-muted-text">{item.description}</p>
                         </div>
                       </li>

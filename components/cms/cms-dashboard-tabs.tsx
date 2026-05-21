@@ -10,6 +10,7 @@ import {
   Calendar,
   ClipboardList,
   FileText,
+  FolderOpen,
   Handshake,
   House,
   ImageIcon,
@@ -31,6 +32,7 @@ export type DashboardIconKey =
   | "Handshake"
   | "PanelBottom"
   | "FileText"
+  | "FolderOpen"
   | "Newspaper"
   | "BookOpen"
   | "Calendar"
@@ -64,6 +66,7 @@ const ICONS: Record<DashboardIconKey, LucideIcon> = {
   Handshake,
   PanelBottom,
   FileText,
+  FolderOpen,
   Newspaper,
   BookOpen,
   Calendar,
@@ -119,7 +122,7 @@ export function CmsDashboardTabs({ sections }: { sections: DashboardModuleSectio
       </div>
 
       <div
-        className="flex flex-wrap gap-2 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-sm ring-1 ring-slate-900/[0.03]"
+        className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-sm ring-1 ring-slate-900/[0.03] sm:flex sm:flex-wrap"
         role="tablist"
         aria-label="Content categories"
       >
@@ -136,7 +139,7 @@ export function CmsDashboardTabs({ sections }: { sections: DashboardModuleSectio
               aria-controls={`panel-${section.id}`}
               onClick={() => setActiveId(section.id)}
               className={cn(
-                "relative flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all sm:flex-none sm:min-w-[9.5rem]",
+                "relative flex min-h-[2.75rem] min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all sm:flex-none sm:min-w-[9.5rem] sm:gap-2 sm:px-4 sm:text-sm",
                 isActive
                   ? "bg-gcs-primary text-white shadow-md shadow-gcs-primary/25"
                   : "text-gcs-muted-text hover:bg-slate-50 hover:text-gcs-foreground"

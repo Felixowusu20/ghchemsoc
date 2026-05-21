@@ -17,6 +17,7 @@ import { SearchModal } from "@/components/ui/search-modal";
 const NAV = [
     { label: "About", href: "/about" },
     { label: "Membership", href: "/membership" },
+    { label: "Resources", href: "/resources" },
     { label: "Publications", href: "/publications" },
     { label: "Events", href: "/events" },
     { label: "News", href: "/news" },
@@ -28,6 +29,7 @@ const LIGHT_HEADER_PATHS = [
     "/contact",
     "/membership",
     "/membership/account",
+    "/resources",
     "/publications",
     "/events",
     "/news",

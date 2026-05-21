@@ -19,6 +19,7 @@ export const SITE_FOOTER_DEFAULTS = {
   trademarkNotice: "Ghana Chemical Society® and the GCS logo are trademarks of the society.",
   navLinks: [
     { label: "About", href: "/about" },
+    { label: "Resources", href: "/resources" },
     { label: "Events", href: "/events" },
     { label: "Publications", href: "/publications" },
     { label: "Contact", href: "/contact" },

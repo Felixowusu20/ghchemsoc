@@ -12,8 +12,7 @@ function RegisterIntro({ status }: { status: AdminRegistrationStatus }) {
     return (
       <p className="mt-2 text-sm leading-relaxed text-slate-400">
         You are creating the <strong className="font-medium text-slate-200">first</strong> administrator account for
-        this site. Choose a work email and a strong password — you will use these to sign in at{" "}
-        <span className="text-slate-300">/cms/login</span>.
+        this site. Choose a work email and a strong password — you will use these each time you sign in to the admin area.
       </p>
     );
   }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard } from "@/components/cms/cms-ui";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -31,7 +31,7 @@ export function RegistrationInboxClient() {
     const q = unreadOnly ? "?unread=1" : "";
     const res = await fetch(`/api/cms/registration-inbox${q}`, cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setRows([]);
       setLoading(false);
       return;

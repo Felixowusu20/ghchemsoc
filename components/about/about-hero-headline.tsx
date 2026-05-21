@@ -29,8 +29,8 @@ export function AboutHeroHeadline({ line1, line2 }: Props) {
   }
 
   return (
-    <h1 className="gcs-page-title">
-      <span className="block">
+    <h1 className="gcs-page-title max-w-full">
+      <span className="block break-words">
         {words.map((word, i) => (
           <motion.span
             key={`${i}-${word}`}

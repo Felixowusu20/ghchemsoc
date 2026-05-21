@@ -1,5 +1,10 @@
+import { mkdtemp, unlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { Readable } from "node:stream";
 import { v2 as cloudinary } from "cloudinary";
+import { CMS_VIDEO_UPLOAD_OPTIONS } from "@/lib/cloudinary-video";
+import { optimizedCloudinaryVideoUrl } from "@/lib/video-delivery-url";
 
 export { cloudinary };
 
@@ -57,12 +62,14 @@ export function configureCloudinaryFromEnv(): boolean {
 export const CLOUDINARY_SETUP_HINT =
   "Set CLOUDINARY_URL (cloudinary://API_KEY:API_SECRET@CLOUD_NAME) in .env.local, or set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET. Copy values from Cloudinary Console → API Keys.";
 
+export type CloudinaryResourceType = "image" | "video" | "raw";
+
 export async function uploadBufferToCloudinary(
   buffer: Buffer,
   folder: string,
   publicId?: string,
-  resourceType: "image" | "raw" = "image"
-): Promise<{ secure_url: string; public_id: string; resource_type: "image" | "raw" }> {
+  resourceType: CloudinaryResourceType = "image"
+): Promise<{ secure_url: string; public_id: string; resource_type: CloudinaryResourceType }> {
   if (!configureCloudinaryFromEnv()) {
     throw new Error("CLOUDINARY_NOT_CONFIGURED");
   }
@@ -93,11 +100,67 @@ export async function uploadBufferToCloudinary(
 
 /** Member library: images as image, PDFs and other docs as raw. */
 export async function uploadMemberLibraryFile(buffer: Buffer, mime: string) {
-  const resourceType: "image" | "raw" = mime.startsWith("image/") ? "image" : "raw";
+  const resourceType: CloudinaryResourceType = mime.startsWith("image/") ? "image" : "raw";
   return uploadBufferToCloudinary(buffer, "member-library", undefined, resourceType);
 }
 
-export async function deleteCloudinaryAsset(publicId: string, resourceType: "image" | "raw" = "image") {
+/** Large videos: temp file + chunked upload; returns web-optimized delivery URL. */
+export async function uploadCmsVideo(
+  buffer: Buffer,
+  folder: string,
+  originalName?: string
+): Promise<{ secure_url: string; public_id: string; resource_type: "video" }> {
+  if (!configureCloudinaryFromEnv()) {
+    throw new Error("CLOUDINARY_NOT_CONFIGURED");
+  }
+
+  const safeFolder = folder.replace(/[^a-z0-9-_]/gi, "") || "resourcesvideos";
+  const ext = originalName?.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase() ?? "mp4";
+  const dir = await mkdtemp(join(tmpdir(), "gcs-video-"));
+  const filePath = join(dir, `upload.${ext}`);
+  await writeFile(filePath, buffer);
+
+  try {
+    const result = await new Promise<{
+      public_id: string;
+      secure_url: string;
+      eager?: { secure_url?: string; format?: string }[];
+    }>((resolve, reject) => {
+      cloudinary.uploader.upload_large(
+        filePath,
+        {
+          folder: `gcs-cms/${safeFolder}`,
+          ...CMS_VIDEO_UPLOAD_OPTIONS,
+        },
+        (err, res) => {
+          if (err || !res) reject(err ?? new Error("Cloudinary video upload failed"));
+          else resolve(res);
+        }
+      );
+    });
+
+    const eagerMp4 = result.eager?.find(
+      (e: { format?: string; secure_url?: string }) => e.format === "mp4" || e.secure_url?.includes(".mp4")
+    );
+    const env = getCloudinaryEnv();
+    const optimized = env ? optimizedCloudinaryVideoUrl(result.public_id, env.cloud_name) : "";
+    const deliveryUrl = eagerMp4?.secure_url ?? (optimized || result.secure_url);
+
+    return {
+      secure_url: deliveryUrl,
+      public_id: result.public_id,
+      resource_type: "video",
+    };
+  } finally {
+    await unlink(filePath).catch(() => {});
+  }
+}
+
+export async function uploadCmsDocument(buffer: Buffer, folder: string) {
+  return uploadBufferToCloudinary(buffer, folder, undefined, "raw");
+}
+
+export async function deleteCloudinaryAsset(publicId: string, resourceType: CloudinaryResourceType = "image") {
   if (!configureCloudinaryFromEnv()) {
     throw new Error("CLOUDINARY_NOT_CONFIGURED");
   }

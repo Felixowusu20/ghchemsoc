@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,6 +11,7 @@ import {
   Users,
   Newspaper,
   BookOpen,
+  FolderOpen,
   Calendar,
   ClipboardList,
   MessageCircle,
@@ -24,10 +26,15 @@ import {
   Settings,
   X,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CmsLogoutButton } from "@/components/cms/cms-logout";
 import { CmsNavBadge, useCmsNotificationCounts } from "@/components/cms/cms-nav-badges";
+import { cn } from "@/lib/utils";
+
+const SIDEBAR_COLLAPSED_KEY = "gcs-cms-sidebar-collapsed";
 
 type NavItem = {
   href: string;
@@ -63,6 +70,7 @@ const navGroups: NavGroup[] = [
       { href: "/cms/join", label: "Join / membership", icon: Users },
       { href: "/cms/partnerships", label: "Partnerships", icon: Handshake },
       { href: "/cms/news", label: "News", icon: Newspaper },
+      { href: "/cms/resources", label: "Resources", icon: FolderOpen },
       { href: "/cms/publications", label: "Publications", icon: BookOpen },
       { href: "/cms/events", label: "Events", icon: Calendar },
       { href: "/cms/site-footer", label: "Site footer", icon: PanelBottom },
@@ -115,15 +123,38 @@ function badgeCount(badge: NavItem["badge"], counts: ReturnType<typeof useCmsNot
 export function CmsSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const { counts } = useCmsNotificationCounts();
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1") setCollapsed(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
 
   const linkCls = (href: string) => {
     const active = isNavActive(href, pathname);
-    return `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+    return cn(
+      "relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-colors",
+      collapsed ? "md:justify-center md:px-2" : "px-3",
       active
         ? "bg-gcs-primary/10 text-gcs-primary shadow-sm"
         : "text-gcs-muted-text hover:bg-neutral-50 hover:text-gcs-foreground"
-    }`;
+    );
   };
 
   return (
@@ -138,19 +169,53 @@ export function CmsSidebar() {
       </button>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-gcs-border bg-white px-3 pb-6 pt-16 shadow-xl transition-transform md:static md:translate-x-0 md:pt-8 md:shadow-none ${
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col overflow-hidden border-r border-gcs-border bg-white px-3 pb-6 pt-16 shadow-xl transition-[width,transform] duration-300 ease-in-out md:static md:translate-x-0 md:pt-8 md:shadow-none",
+          collapsed ? "w-[260px] md:w-[4.5rem] md:px-2" : "w-[260px]",
           open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        )}
       >
-        <div className="mb-8 px-3">
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gcs-primary">GCS</p>
-          <p className="mt-1 text-lg font-semibold tracking-tight text-gcs-foreground">Admin</p>
-          <p className="mt-1 text-xs leading-snug text-gcs-muted-text">Marketing &amp; content</p>
-        </div>
-        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-1">
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="absolute -right-3 top-24 z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-gcs-border bg-white text-gcs-muted-text shadow-md transition hover:border-gcs-primary/30 hover:text-gcs-primary md:flex"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ChevronRight className="h-4 w-4" aria-hidden /> : <ChevronLeft className="h-4 w-4" aria-hidden />}
+        </button>
+
+        <Link
+          href="/cms"
+          className={cn(
+            "mb-6 flex items-start gap-3 rounded-xl py-1 transition-colors hover:bg-neutral-50",
+            collapsed ? "md:justify-center md:px-0" : "px-2"
+          )}
+          onClick={() => setOpen(false)}
+          title={collapsed ? "GCS Admin" : undefined}
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-gcs-border/60">
+            <span className="relative h-8 w-8">
+              <Image
+                src="/logo/ghana-chemical-society-logo.png"
+                alt="Ghana Chemical Society logo"
+                fill
+                className="object-contain object-center"
+                sizes="32px"
+              />
+            </span>
+          </span>
+          <span className={cn("min-w-0 pt-0.5", collapsed && "md:hidden")}>
+            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gcs-primary">GCS</p>
+            <p className="mt-0.5 text-lg font-semibold leading-tight tracking-tight text-gcs-foreground">Admin</p>
+            <p className="mt-0.5 text-xs leading-snug text-gcs-muted-text">Marketing &amp; content</p>
+          </span>
+        </Link>
+
+        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden px-1">
           {navGroups.map((group, groupIndex) => (
             <div key={group.id} className={groupIndex === 0 ? "" : "border-t border-gcs-border/40 pt-3"}>
-              {group.id === "overview" ? null : (
+              {group.id === "overview" || collapsed ? null : (
                 <div className="px-3 pb-2">
                   <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-gcs-muted-text/80">
                     {group.label}
@@ -161,33 +226,59 @@ export function CmsSidebar() {
                 </div>
               )}
               <div className="flex flex-col gap-0.5">
-                {group.items.map(({ href, label, icon: Icon, badge }) => (
-                  <Link key={href} href={href} className={linkCls(href)} onClick={() => setOpen(false)}>
-                    <Icon
-                      className={`h-4 w-4 shrink-0 ${
-                        isNavActive(href, pathname) ? "text-gcs-primary" : "text-gcs-muted-text"
-                      }`}
-                    />
-                    <span className="min-w-0 flex-1 truncate">{label}</span>
-                    <CmsNavBadge count={badgeCount(badge, counts)} />
-                  </Link>
-                ))}
+                {group.items.map(({ href, label, icon: Icon, badge }) => {
+                  const count = badgeCount(badge, counts);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={linkCls(href)}
+                      onClick={() => setOpen(false)}
+                      title={collapsed ? label : undefined}
+                    >
+                      <Icon
+                        className={cn(
+                          "h-4 w-4 shrink-0",
+                          isNavActive(href, pathname) ? "text-gcs-primary" : "text-gcs-muted-text"
+                        )}
+                      />
+                      <span className={cn("min-w-0 flex-1 truncate", collapsed && "md:hidden")}>{label}</span>
+                      {collapsed ? (
+                        count > 0 ? (
+                          <span
+                            className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gcs-primary px-1 text-[0.55rem] font-bold text-white md:right-0.5 md:top-0.5"
+                            aria-label={`${count} notifications`}
+                          >
+                            {count > 9 ? "9+" : count}
+                          </span>
+                        ) : null
+                      ) : (
+                        <CmsNavBadge count={count} />
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}
         </nav>
+
         <div className="mt-auto space-y-2 border-t border-gcs-border/60 pt-4">
           <Link
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-gcs-primary transition-colors hover:bg-gcs-primary/5"
+            className={cn(
+              "flex w-full items-center gap-2 rounded-xl py-2.5 text-sm font-medium text-gcs-primary transition-colors hover:bg-gcs-primary/5",
+              collapsed ? "md:justify-center md:px-2" : "px-3"
+            )}
             onClick={() => setOpen(false)}
+            title={collapsed ? "Visit live site" : undefined}
           >
             <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
-            Visit live site
+            <span className={cn(collapsed && "md:hidden")}>Visit live site</span>
           </Link>
-          <CmsLogoutButton />
+          <CmsLogoutButton iconOnly={collapsed} />
         </div>
       </aside>
 

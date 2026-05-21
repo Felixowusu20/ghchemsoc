@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
@@ -57,8 +57,13 @@ export function JoinCmsClient() {
       fetch("/api/cms/join-header", cmsCredentials),
       fetch("/api/cms/join-steps", cmsCredentials),
     ]);
+    if (hRes.status === 401 || sRes.status === 401) {
+      setErr(CMS_UNAUTHORIZED_MESSAGE);
+      setLoading(false);
+      return;
+    }
     if (!hRes.ok || !sRes.ok) {
-      setErr("Unauthorized or load failed — sign in at /cms/login");
+      setErr("Could not load this page. Please try again.");
       setLoading(false);
       return;
     }
@@ -160,7 +165,7 @@ export function JoinCmsClient() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Public site</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Join / membership</h1>
-        <p className="mt-2 text-sm text-slate-600">Homepage join block and /membership hero. Images must be uploaded — no external image URLs.</p>
+        <p className="mt-2 text-sm text-slate-600">Homepage join block and membership registration hero. Upload images here — pasted image links are not used.</p>
       </div>
       {err ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{err}</p> : null}
 

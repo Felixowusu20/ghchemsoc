@@ -56,7 +56,7 @@ export function MemberPaymentsPage() {
             <p className="text-xs text-gcs-muted-text">Confirmed payments appear here after secretariat review</p>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-gcs-border/60 bg-neutral-50/80 text-[11px] font-semibold uppercase tracking-wide text-gcs-muted-text">
               <tr>

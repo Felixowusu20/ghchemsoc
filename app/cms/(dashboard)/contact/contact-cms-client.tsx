@@ -62,7 +62,7 @@ export function ContactCmsClient() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Public site</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Contact page</h1>
-        <p className="mt-2 text-sm text-slate-600">Hero copy and the four detail cards on /contact (no image uploads here).</p>
+        <p className="mt-2 text-sm text-slate-600">Hero copy and the four detail cards on the public contact page (no image uploads here).</p>
       </div>
       {err ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{err}</p> : null}
       {saved ? <p className="text-sm font-medium text-emerald-700">Saved.</p> : null}

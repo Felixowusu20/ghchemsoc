@@ -50,6 +50,8 @@
     line-height: 1.12;
     letter-spacing: -0.02em;
     color: var(--gcs-foreground-rich);
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .gcs-section-title {
@@ -142,4 +144,84 @@ body {
   color: var(--foreground);
   font-family: var(--font-outfit), sans-serif;
   overflow-x: hidden;
+}
+
+/* CMS / public rich HTML (news, member inbox, etc.) */
+.news-article-prose,
+.gcs-rich-html {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.news-article-prose table,
+.gcs-rich-html table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.news-article-prose pre,
+.gcs-rich-html pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.news-article-prose iframe,
+.gcs-rich-html iframe {
+  max-width: 100%;
+}
+
+.news-article-prose h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.news-article-prose h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.news-article-prose p {
+  margin: 0.85rem 0;
+}
+
+.news-article-prose ul,
+.news-article-prose ol {
+  margin: 0.85rem 0;
+  padding-left: 1.35rem;
+}
+
+.news-article-prose li {
+  margin: 0.35rem 0;
+}
+
+.news-article-prose blockquote {
+  margin: 1.25rem 0;
+  border-left: 3px solid var(--gcs-primary);
+  padding-left: 1rem;
+  color: var(--gcs-muted-text);
+  font-style: italic;
+}
+
+.news-article-prose a {
+  color: var(--gcs-primary);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.news-article-prose img {
+  margin: 1.25rem auto;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}
+
+.news-article-prose strong {
+  font-weight: 600;
 }

@@ -111,7 +111,7 @@ export function Hero({ cmsSlides }: HeroProps) {
               Ghana Chemical Society
             </p>
 
-            <h1 className="mb-6 max-w-5xl text-4xl font-medium leading-[1.08] tracking-tight text-white drop-shadow-sm sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="mb-6 max-w-5xl break-words text-3xl font-medium leading-[1.08] tracking-tight text-white drop-shadow-sm sm:text-4xl md:text-6xl lg:text-7xl">
               {activeSlide.title}
             </h1>
 
@@ -128,7 +128,7 @@ export function Hero({ cmsSlides }: HeroProps) {
               type="button"
               onClick={() => setSlideIndex(i)}
               className={`h-2 rounded-full transition-all ${
-                i === slideIndex ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/70"
+                i === slideIndex ? "w-8 bg-white" : "w-2 bg-white/40  hover:bg-white/70"
               }`}
               aria-label={`Show slide ${i + 1}: ${s.title}`}
               aria-current={i === slideIndex}
@@ -150,7 +150,7 @@ export function Hero({ cmsSlides }: HeroProps) {
           </Link>
         </div>
 
-        <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end md:bottom-12 md:right-12">
+        <div className="absolute bottom-20 right-4 z-20 flex max-w-[min(100%,14rem)] flex-col items-end sm:bottom-6 sm:right-6 md:bottom-12 md:right-12 md:max-w-none">
           <AnimatePresence mode="wait">
             {!socialOpen ? (
               <motion.button
@@ -191,7 +191,7 @@ export function Hero({ cmsSlides }: HeroProps) {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0 }}
-                  className="flex min-w-[200px] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/95 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gcs-foreground shadow-lg backdrop-blur-md transition-transform hover:scale-[1.02] sm:text-sm"
+                  className="flex w-full min-w-0 max-w-[min(100vw-2rem,14rem)] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/95 px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-gcs-foreground shadow-lg backdrop-blur-md transition-transform hover:scale-[1.02] sm:min-w-[200px] sm:max-w-none sm:px-6 sm:py-3 sm:text-sm"
                 >
                   <Mail className="h-4 w-4 shrink-0 text-gcs-primary" />
                   Email the secretariat
@@ -204,7 +204,7 @@ export function Hero({ cmsSlides }: HeroProps) {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.08 }}
-                  className="flex min-w-[200px] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/95 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gcs-foreground shadow-lg backdrop-blur-md transition-transform hover:scale-[1.02] sm:text-sm"
+                  className="flex w-full min-w-0 max-w-[min(100vw-2rem,14rem)] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/95 px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-gcs-foreground shadow-lg backdrop-blur-md transition-transform hover:scale-[1.02] sm:min-w-[200px] sm:max-w-none sm:px-6 sm:py-3 sm:text-sm"
                 >
                   <Linkedin className="h-4 w-4 shrink-0 text-gcs-primary" />
                   Follow on LinkedIn

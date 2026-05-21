@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { gooeyToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { cmsCredentials } from "@/lib/cms-fetch";
 import {
     loadMemberProfile,
     saveMemberAuthSession,
@@ -22,7 +23,7 @@ const field =
 const label = "mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-700";
 
 const tabBtn =
-    "flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gcs-primary focus-visible:ring-offset-2";
+    "w-full rounded-xl px-3 py-2.5 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gcs-primary focus-visible:ring-offset-2 sm:flex-1 sm:px-4 sm:py-3 sm:text-sm";
 
 export function LoginForm() {
     const router = useRouter();
@@ -138,13 +139,37 @@ export function LoginForm() {
                     });
                     return;
                 }
-                startTransition(() => {
-                    gooeyToast.success("Logged in", {
-                        description: "Welcome back to the Ghana Chemical Society portal.",
-                        preset: "smooth",
-                        spring: false,
-                    });
-                    router.push("/dashboard");
+                startTransition(async () => {
+                    try {
+                        const res = await fetch("/api/auth/login", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            ...cmsCredentials,
+                            body: JSON.stringify({ email, password }),
+                        });
+                        const data = (await res.json().catch(() => ({}))) as { error?: string };
+                        if (!res.ok) {
+                            gooeyToast.error("Sign in failed", {
+                                description: data.error ?? "Check your email and password.",
+                                preset: "smooth",
+                                spring: false,
+                            });
+                            return;
+                        }
+                        gooeyToast.success("Logged in", {
+                            description: "Welcome to the GCS website admin.",
+                            preset: "smooth",
+                            spring: false,
+                        });
+                        router.push("/cms");
+                        router.refresh();
+                    } catch {
+                        gooeyToast.error("Sign in failed", {
+                            description: "Network error. Try again in a moment.",
+                            preset: "smooth",
+                            spring: false,
+                        });
+                    }
                 });
             }}
         >
@@ -152,12 +177,12 @@ export function LoginForm() {
                 <div className="text-left">
                     <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Sign in</h1>
                     <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                        Members use email and member ID. Staff use email and password.
+                        Members use email and member ID. Staff and administrators use email and password for the website admin area.
                     </p>
                 </div>
 
                 <div
-                    className="mt-8 flex rounded-xl border border-slate-200 bg-slate-50/80 p-1"
+                    className="mt-8 flex flex-col gap-1 rounded-xl border border-slate-200 bg-slate-50/80 p-1 sm:flex-row"
                     role="tablist"
                     aria-label="Sign-in type"
                 >
@@ -290,13 +315,34 @@ export function LoginForm() {
                 </Button>
 
                 <p className="mt-8 border-t border-slate-100 pt-6 text-center text-sm text-slate-600">
-                    New to GCS?{" "}
-                    <Link
-                        href="/membership"
-                        className="font-semibold text-gcs-primary underline-offset-2 hover:text-gcs-primary-hover hover:underline"
-                    >
-                        Apply for membership
-                    </Link>
+                    {mode === "member" ? (
+                        <>
+                            Need to register or renew?{" "}
+                            <Link
+                                href="/membership#register"
+                                className="font-semibold text-gcs-primary underline-offset-2 hover:text-gcs-primary-hover hover:underline"
+                            >
+                                Membership application
+                            </Link>
+                        </>
+                    ) : (
+                        <>
+                            GCS member?{" "}
+                            <Link
+                                href="/login?role=member"
+                                className="font-semibold text-gcs-primary underline-offset-2 hover:text-gcs-primary-hover hover:underline"
+                            >
+                                Member sign-in
+                            </Link>
+                            {" · "}
+                            <Link
+                                href="/membership"
+                                className="font-semibold text-gcs-primary underline-offset-2 hover:text-gcs-primary-hover hover:underline"
+                            >
+                                Apply for membership
+                            </Link>
+                        </>
+                    )}
                 </p>
             </div>
         </form>

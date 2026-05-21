@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
@@ -36,7 +36,7 @@ export function HomepageExploreCmsClient() {
     setErr(null);
     const res = await fetch("/api/cms/homepage-explore", cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setForm(null);
       setLoading(false);
       return;
@@ -93,9 +93,9 @@ export function HomepageExploreCmsClient() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Public homepage</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Mission strip</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-600">
-          Headline, supporting copy, and imagery below the hero on the homepage. The headline and About column also power
-          the intro on <span className="font-mono text-xs">/about</span>. Line 1 and line 2 form the large title (a line
-          break is added on desktop between them).
+          Headline, supporting copy, and imagery below the hero on the homepage. The same headline and About column also
+          appear at the top of the About page. Line 1 and line 2 form the large title (a line break is added on desktop
+          between them).
         </p>
       </div>
       {err ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{err}</p> : null}

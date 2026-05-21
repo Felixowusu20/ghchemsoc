@@ -186,11 +186,7 @@ export function MemberPortalCmsClient() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Members</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Member portal</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
-            Copy and benefit cards shown after members sign in at{" "}
-            <Link href="/membership/account" className="font-medium text-gcs-primary hover:underline" target="_blank">
-              /membership/account
-            </Link>
-            .
+            Copy and benefit cards shown in the member portfolio after members sign in.
           </p>
         </div>
         <Link
@@ -328,7 +324,12 @@ export function MemberPortalCmsClient() {
                     ) : null}
                   </div>
                   <p className="mt-1 text-sm text-slate-600">{row.description}</p>
-                  {row.href ? <p className="mt-1 font-mono text-xs text-slate-500">{row.href}</p> : null}
+                  {row.href ? (
+                    <p className="mt-1 break-all text-xs text-slate-500">
+                      <span className="font-medium text-slate-600">Link: </span>
+                      {row.href}
+                    </p>
+                  ) : null}
                 </div>
                 <CmsListActions
                   onEdit={() => startEditBenefit(row)}
@@ -432,7 +433,7 @@ export function MemberPortalCmsClient() {
               <CmsInput
                 value={benefitForm.href}
                 onChange={(e) => setBenefitForm((f) => ({ ...f, href: e.target.value }))}
-                placeholder="/events"
+                placeholder="https://… or Events page"
               />
             </label>
             <label>

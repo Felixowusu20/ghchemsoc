@@ -18,7 +18,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsMetricCard, CmsPageHero } from "@/components/cms/cms-page-chrome";
 import { CmsButton, CmsCard } from "@/components/cms/cms-ui";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -108,7 +108,7 @@ export function MembershipCmsDashboard() {
     const q = search.trim() ? `?q=${encodeURIComponent(search.trim())}` : "";
     const res = await fetch(`/api/cms/membership-applications${q}`, cmsCredentials);
     if (!res.ok) {
-      setErr(res.status === 401 ? "Sign in at /cms/login" : await res.text());
+      setErr(res.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : await res.text());
       setRows([]);
       setDashboard(null);
       setLoading(false);
@@ -443,8 +443,8 @@ export function MembershipCmsDashboard() {
           ) : null}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px] text-left text-sm">
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <table className="w-full min-w-[640px] text-left text-sm md:min-w-[1000px]">
             <thead>
               <tr className="border-b border-slate-100 bg-white text-[0.65rem] font-semibold uppercase tracking-wider text-slate-500">
                 <th className="w-11 px-3 py-3.5">

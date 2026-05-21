@@ -118,7 +118,7 @@ export function Testimonials() {
                                 <span className="absolute -left-4 -top-12 select-none font-serif text-6xl text-neutral-100 md:-left-12 md:text-8xl">
                                     ❝
                                 </span>
-                                <p className="text-2xl font-medium italic leading-relaxed tracking-tight text-gcs-foreground md:text-3xl lg:text-4xl">
+                                <p className="break-words text-xl font-medium italic leading-relaxed tracking-tight text-gcs-foreground sm:text-2xl md:text-3xl lg:text-4xl">
                                     {testimonials[index].quote}
                                 </p>
                             </div>

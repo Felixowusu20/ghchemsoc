@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { cmsCredentials } from "@/lib/cms-fetch";
+import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
@@ -59,7 +59,7 @@ export function PartnershipsCmsClient() {
       fetch("/api/cms/partnership-cards", cmsCredentials),
     ]);
     if (!sRes.ok || !cRes.ok) {
-      setErr(sRes.status === 401 || cRes.status === 401 ? "Sign in at /cms/login" : "Could not load partnerships");
+      setErr(sRes.status === 401 || cRes.status === 401 ? CMS_UNAUTHORIZED_MESSAGE : "Could not load partnerships");
       setLoading(false);
       return;
     }
@@ -275,7 +275,7 @@ export function PartnershipsCmsClient() {
           <label>
             <CmsFieldLabel>Link (optional)</CmsFieldLabel>
             <CmsInput
-              placeholder="/contact or https://…"
+              placeholder="Contact page or https://…"
               value={form.href}
               onChange={(e) => setForm((f) => ({ ...f, href: e.target.value }))}
             />

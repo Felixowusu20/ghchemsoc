@@ -35,7 +35,7 @@ export default async function NewsPage() {
                 From the society desk
               </h1>
               <p className="gcs-lead mt-5 max-w-xl">
-                Stories published from the CMS. Manage items at <span className="font-mono text-xs">/cms/news</span>.
+                Announcements and articles from the Ghana Chemical Society desk.
               </p>
             </div>
             <Link

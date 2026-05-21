@@ -76,7 +76,7 @@ export default async function EventsPage() {
             >
               <p className="text-lg font-semibold text-gcs-foreground">No published events yet</p>
               <p className="mt-2 text-sm text-gcs-muted-text">
-                Editors can add conferences and meetings in the CMS under Events. They will appear here automatically.
+                New conferences and meetings will be listed here as they are announced.
               </p>
             </div>
           ) : null}

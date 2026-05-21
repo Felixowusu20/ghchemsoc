@@ -17,7 +17,7 @@ export default function LoginPage() {
     return (
         <main className="flex min-h-screen flex-col bg-white lg:flex-row">
             {/* Image / brand panel */}
-            <div className="relative h-52 w-full shrink-0 sm:h-64 lg:h-auto lg:min-h-screen lg:w-[min(48%,560px)] lg:flex-1 lg:max-w-none">
+            <div className="relative hidden min-h-screen w-full shrink-0 lg:block lg:w-[min(48%,560px)] lg:flex-1 lg:max-w-none">
                 <Image
                     src={heroImage}
                     alt="Researchers working in a chemistry laboratory"
@@ -50,7 +50,7 @@ export default function LoginPage() {
 
                     <div className="max-w-md space-y-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-200/90">Portal access</p>
-                        <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl lg:text-[2.125rem] lg:leading-[1.15] xl:text-4xl">
+                        <h1 className="text-2xl font-semibold leading-tight tracking-tight text-white sm:text-3xl lg:text-[2.125rem] lg:leading-[1.15] xl:text-4xl">
                             Science, collaboration, and chemistry across Ghana.
                         </h1>
                         <p className="text-sm leading-relaxed text-white/75 lg:text-base">
