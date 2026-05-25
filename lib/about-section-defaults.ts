@@ -20,6 +20,16 @@ export const ABOUT_SECTION_SEED = [
     imageUrl: null as string | null,
     imageAlt: null as string | null,
   },
+  {
+    sortOrder: 2,
+    published: true,
+    title: "Governance & leadership",
+    subtitle: "Executive oversight",
+    body: "The society is guided by elected officers who set policy, steward membership services, and represent Ghana’s chemical community nationally and internationally.",
+    layout: "default",
+    imageUrl: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&q=80",
+    imageAlt: "Leadership meeting",
+  },
 ] as const;
 
 export type AboutSectionPublic = {

@@ -18,8 +18,9 @@ const searchData = {
     ],
     pages: [
         { id: 1, title: "About the Society", description: "Mission, structure, and leadership", href: "/about", icon: MapPin },
-        { id: 2, title: "Contact & inquiries", description: "Reach the secretariat", href: "/contact", icon: MapPin },
-        { id: 3, title: "Ghana Chemical Society", description: "Return to the homepage", href: "/", icon: FlaskConical },
+        { id: 2, title: "Executive officers", description: "President, officers, and governance", href: "/executives", icon: Users },
+        { id: 3, title: "Contact & inquiries", description: "Reach the secretariat", href: "/contact", icon: MapPin },
+        { id: 4, title: "Ghana Chemical Society", description: "Return to the homepage", href: "/", icon: FlaskConical },
     ],
 }
 

@@ -6,7 +6,7 @@ import { GooeyToaster } from "goey-toast";
 export function AppToaster() {
     return (
         <GooeyToaster
-            position="bottom-right"
+            position="top-right"
             theme="light"
             preset="smooth"
             spring={false}

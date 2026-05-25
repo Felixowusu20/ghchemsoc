@@ -1,27 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
+import { heroSlideDbData, heroSlideInputSchema } from "@/lib/hero-slide-schema";
 import { prisma } from "@/lib/prisma";
-
-const slideSchema = z.object({
-  sortOrder: z.number().optional(),
-  published: z.boolean().optional(),
-  imagePublicId: z.string().nullable().optional(),
-  imageUrl: z.string().url(),
-  imageAlt: z.string().min(1),
-  eyebrow: z.string().min(1),
-  headlineLine1: z.string().min(1),
-  headlineLine2: z.string().min(1),
-  description: z.string().min(1),
-  tags: z.array(z.string()).default([]),
-  highlights: z.array(z.string()).default([]),
-  ctaLabel: z.string().min(1),
-  ctaHref: z.string().min(1),
-  secondaryLabel: z.string().nullable().optional(),
-  secondaryHref: z.string().nullable().optional(),
-  statValue: z.string().nullable().optional(),
-  statLabel: z.string().nullable().optional(),
-});
 
 /** CMS admin list shape (flattened media + JSON fields). */
 function serializeSlide(r: {
@@ -92,7 +72,7 @@ export async function POST(request: NextRequest) {
   const denied = await assertAdmin(request);
   if (denied) return denied;
   const json = await request.json();
-  const parsed = slideSchema.safeParse(json);
+  const parsed = heroSlideInputSchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
@@ -108,22 +88,8 @@ export async function POST(request: NextRequest) {
     });
     return tx.heroSlide.create({
       data: {
-        sortOrder: d.sortOrder ?? 0,
-        published: d.published ?? true,
         mediaId: media.id,
-        imageAlt: d.imageAlt,
-        eyebrow: d.eyebrow,
-        headlineLine1: d.headlineLine1,
-        headlineLine2: d.headlineLine2,
-        description: d.description,
-        tags: d.tags,
-        highlights: d.highlights,
-        ctaLabel: d.ctaLabel,
-        ctaHref: d.ctaHref,
-        secondaryLabel: d.secondaryLabel ?? null,
-        secondaryHref: d.secondaryHref ?? null,
-        statValue: d.statValue ?? null,
-        statLabel: d.statLabel ?? null,
+        ...heroSlideDbData(d),
       },
       include: { media: true },
     });

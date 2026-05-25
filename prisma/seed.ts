@@ -28,6 +28,7 @@ async function main() {
   await prisma.societyEvent.deleteMany();
   await prisma.contactInquiry.deleteMany();
   await prisma.aboutSection.deleteMany();
+  await prisma.executive.deleteMany();
   await prisma.joinStep.deleteMany();
   await prisma.newsItem.deleteMany();
   await prisma.publicationArticle.deleteMany();
@@ -131,6 +132,14 @@ async function main() {
     },
   });
 
+  const mGovernance = await prisma.media.create({
+    data: {
+      url: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&q=80",
+      publicId: null,
+      alt: "Leadership meeting",
+    },
+  });
+
   await prisma.aboutSection.createMany({
     data: [
       {
@@ -150,6 +159,83 @@ async function main() {
         body: "Conferences, publications, outreach to schools, and professional networks that strengthen the chemical sciences nationwide.",
         layout: "wide",
         mediaId: null,
+      },
+      {
+        sortOrder: 2,
+        published: true,
+        title: "Governance & leadership",
+        subtitle: "Executive oversight",
+        body: "The society is guided by elected officers who set policy, steward membership services, and represent Ghana’s chemical community nationally and internationally.",
+        layout: "default",
+        mediaId: mGovernance.id,
+      },
+    ],
+  });
+
+  const execPhotos = await Promise.all([
+    prisma.media.create({
+      data: {
+        url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80",
+        publicId: null,
+        alt: "President portrait",
+      },
+    }),
+    prisma.media.create({
+      data: {
+        url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80",
+        publicId: null,
+        alt: "Vice President portrait",
+      },
+    }),
+    prisma.media.create({
+      data: {
+        url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&q=80",
+        publicId: null,
+        alt: "General Secretary portrait",
+      },
+    }),
+    prisma.media.create({
+      data: {
+        url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=800&q=80",
+        publicId: null,
+        alt: "Treasurer portrait",
+      },
+    }),
+  ]);
+
+  await prisma.executive.createMany({
+    data: [
+      {
+        sortOrder: 0,
+        published: true,
+        name: "Prof. Kwame Asante",
+        role: "President",
+        bio: "Leads society strategy, international representation, and partnerships with universities and industry across Ghana.",
+        mediaId: execPhotos[0].id,
+      },
+      {
+        sortOrder: 1,
+        published: true,
+        name: "Dr. Ama Mensah",
+        role: "Vice President",
+        bio: "Oversees programmes, conferences, and professional development for members in academia and the private sector.",
+        mediaId: execPhotos[1].id,
+      },
+      {
+        sortOrder: 2,
+        published: true,
+        name: "Mr. Kofi Boateng",
+        role: "General Secretary",
+        bio: "Coordinates governance, membership records, and liaison with institutional partners and government stakeholders.",
+        mediaId: execPhotos[2].id,
+      },
+      {
+        sortOrder: 3,
+        published: true,
+        name: "Dr. Efua Osei",
+        role: "Treasurer",
+        bio: "Manages society finances, grants, and sponsorships that support outreach and annual scientific meetings.",
+        mediaId: execPhotos[3].id,
       },
     ],
   });

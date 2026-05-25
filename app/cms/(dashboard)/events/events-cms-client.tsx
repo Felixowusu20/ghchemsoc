@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
+import { CmsRichTextEditor } from "@/components/cms/cms-rich-text-editor";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
@@ -13,6 +14,7 @@ import type { Prisma } from "@prisma/client";
 import type { RegistrationFieldDef } from "@/lib/event-registration-form";
 import { createEmptyRegistrationField } from "@/lib/event-registration-form";
 import { handleCmsResponse } from "@/lib/cms-toast";
+import { isNewsBodyEmpty } from "@/lib/news-content";
 import { HomepageEventsSpotlightCms } from "@/components/cms/homepage-events-spotlight-cms";
 
 type Row = {
@@ -143,7 +145,7 @@ export function EventsCmsClient() {
     const payload: Record<string, unknown> = {
       title: form.title,
       excerpt: form.excerpt,
-      body: form.body.trim() ? form.body.trim() : null,
+      body: !isNewsBodyEmpty(form.body) ? form.body : null,
       startDate: new Date(form.startDate).toISOString(),
       endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
       timeLabel: form.timeLabel,
@@ -254,15 +256,16 @@ export function EventsCmsClient() {
             <CmsFieldLabel>Excerpt</CmsFieldLabel>
             <CmsTextarea required rows={3} value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} />
           </label>
-          <label className="md:col-span-2">
-            <CmsFieldLabel>Detail page body (optional)</CmsFieldLabel>
-            <CmsTextarea
-              rows={6}
+          <div className="md:col-span-2">
+            <CmsRichTextEditor
+              label="Detail page body (optional)"
               value={form.body}
-              onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
-              placeholder="Shown on the public event detail page. Use blank lines between paragraphs."
+              onChange={(html) => setForm((f) => ({ ...f, body: html }))}
+              imageFolder="events/body"
+              minHeight="320px"
+              placeholder="Full description for the public event page — headings, lists, tables, and inline images."
             />
-          </label>
+          </div>
           <label>
             <CmsFieldLabel>Start</CmsFieldLabel>
             <CmsInput type="datetime-local" required value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))} />

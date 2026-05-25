@@ -1,4 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export type AboutSection = {
   id: string;
@@ -9,74 +12,90 @@ export type AboutSection = {
   media: { url: string; alt: string | null } | null;
 };
 
-function BodyBlocks({ body }: { body: string }) {
+const EXECUTIVES_LINK_PATTERN = /executive|leadership|governance|officer|president|board/i;
+
+function sectionLinksToExecutives(s: AboutSection): boolean {
+  const text = `${s.title} ${s.subtitle ?? ""} ${s.body}`;
+  return EXECUTIVES_LINK_PATTERN.test(text);
+}
+
+function SectionBody({ body }: { body: string }) {
+  const blocks = body.split("\n\n").filter((b) => b.trim());
+  if (!blocks.length) return null;
+
   return (
-    <div className="gcs-body space-y-4 text-slate-600">
-      {body.split("\n\n").map((block, j) => (
-        <p key={j}>{block}</p>
+    <div className="mt-4 space-y-3 text-sm leading-relaxed text-gcs-muted-text sm:text-[0.95rem]">
+      {blocks.map((block, j) => (
+        <p key={j}>{block.trim()}</p>
       ))}
     </div>
   );
 }
 
-function SectionIndex({ index }: { index: number }) {
+function ImageCard({ s, featured }: { s: AboutSection; featured?: boolean }) {
+  const showExec = sectionLinksToExecutives(s);
+
   return (
-    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gcs-primary text-sm font-bold text-white shadow-sm shadow-blue-600/25">
-      {String(index + 1).padStart(2, "0")}
-    </span>
+    <article
+      className={cn(
+        "overflow-hidden rounded-2xl border border-gcs-border/50 bg-white shadow-[0_12px_40px_-18px_rgba(29,78,216,0.12)] ring-1 ring-gcs-border/30 sm:rounded-3xl",
+        featured ? "md:col-span-2" : ""
+      )}
+      data-aos="fade-up"
+    >
+      <div
+        className={cn(
+          "relative w-full overflow-hidden bg-slate-100",
+          featured ? "aspect-[16/10] sm:aspect-[2/1]" : "aspect-[4/3]"
+        )}
+      >
+        <Image
+          src={s.media!.url}
+          alt={s.media!.alt ?? s.title}
+          fill
+          className="object-cover object-center"
+          sizes={featured ? "(max-width: 768px) 100vw, 1100px" : "(max-width: 768px) 100vw, 540px"}
+        />
+      </div>
+
+      <div className="border-t border-gcs-border/40 px-5 py-6 sm:px-7 sm:py-7">
+        <h2 className="text-lg font-semibold tracking-tight text-gcs-foreground sm:text-xl">{s.title}</h2>
+        {s.subtitle ? <p className="mt-1 text-sm font-medium text-gcs-primary sm:text-base">{s.subtitle}</p> : null}
+        <SectionBody body={s.body} />
+        {showExec ? (
+          <Link
+            href="/executives"
+            className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-gcs-primary hover:text-gcs-primary-hover"
+          >
+            View leadership
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+        ) : null}
+      </div>
+    </article>
   );
 }
 
-/** Image left, copy right — consistent side-by-side on tablet+ */
-function SideBySideSection({ s, index }: { s: AboutSection; index: number }) {
-  const hasMedia = Boolean(s.media);
-  const isWide = s.layout === "wide";
+function TextCard({ s }: { s: AboutSection }) {
+  const showExec = sectionLinksToExecutives(s);
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-blue-100/90 bg-white shadow-[0_8px_30px_-12px_rgba(29,78,216,0.15)] ring-1 ring-blue-50 md:rounded-3xl">
-      <div
-        className={`grid items-stretch ${hasMedia ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}
-      >
-        {hasMedia ? (
-          <div
-            className={`relative min-h-[260px] bg-blue-50 sm:min-h-[300px] ${
-              isWide ? "md:min-h-[360px]" : "md:min-h-[320px]"
-            }`}
-          >
-            <Image
-              src={s.media!.url}
-              alt={s.media!.alt ?? s.title}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority={index === 0}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-950/15 via-transparent to-transparent md:bg-gradient-to-br md:from-gcs-primary/15 md:via-transparent md:to-blue-950/20" />
-          </div>
-        ) : null}
-
-        <div
-          className={`flex flex-col justify-center border-blue-50 px-6 py-9 md:px-10 md:py-11 lg:px-12 lg:py-12 ${
-            hasMedia ? "border-t md:border-t-0 md:border-l" : ""
-          } bg-gradient-to-br from-white via-white to-blue-50/35`}
+    <article
+      className="rounded-2xl border border-gcs-border/50 bg-gradient-to-br from-blue-50/50 via-white to-white px-6 py-8 shadow-sm ring-1 ring-gcs-border/25 sm:rounded-3xl sm:px-8 sm:py-10"
+      data-aos="fade-up"
+    >
+      <h2 className="text-lg font-semibold tracking-tight text-gcs-foreground sm:text-xl">{s.title}</h2>
+      {s.subtitle ? <p className="mt-1 text-sm font-medium text-gcs-primary sm:text-base">{s.subtitle}</p> : null}
+      <SectionBody body={s.body} />
+      {showExec ? (
+        <Link
+          href="/executives"
+          className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-gcs-primary hover:text-gcs-primary-hover"
         >
-          <div className="mb-5 flex items-center gap-4">
-            <SectionIndex index={index} />
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-gcs-primary">Topic {index + 1}</span>
-          </div>
-
-          <div className="gcs-topic-accent">
-            <h2 className="gcs-topic-title">{s.title}</h2>
-            {s.subtitle ? (
-              <p className="mt-3 text-lg font-semibold text-gcs-primary md:text-xl">{s.subtitle}</p>
-            ) : null}
-          </div>
-
-          <div className="mt-7">
-            <BodyBlocks body={s.body} />
-          </div>
-        </div>
-      </div>
+          View leadership
+          <ArrowUpRight className="h-4 w-4" />
+        </Link>
+      ) : null}
     </article>
   );
 }
@@ -84,20 +103,32 @@ function SideBySideSection({ s, index }: { s: AboutSection; index: number }) {
 export function AboutSections({ sections }: { sections: AboutSection[] }) {
   if (sections.length === 0) {
     return (
-      <div className="mx-auto max-w-xl rounded-3xl border border-dashed border-blue-200/80 bg-white/80 px-8 py-16 text-center shadow-sm backdrop-blur-sm">
-        <p className="text-lg font-semibold text-slate-900">Content coming soon</p>
-        <p className="gcs-body mt-2">
-          Society sections will appear here once they are published in the admin.
-        </p>
+      <div className="rounded-3xl border border-dashed border-gcs-border bg-gcs-surface/60 px-8 py-20 text-center">
+        <p className="font-semibold text-gcs-foreground">Content coming soon</p>
       </div>
     );
   }
 
+  const withImages = sections.filter((s) => s.media);
+  const withoutImages = sections.filter((s) => !s.media);
+
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-10 md:gap-12">
-      {sections.map((s, i) => (
-        <SideBySideSection key={s.id} s={s} index={i} />
-      ))}
+    <div className="space-y-8 md:space-y-10">
+      {withoutImages.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+          {withoutImages.map((s) => (
+            <TextCard key={s.id} s={s} />
+          ))}
+        </div>
+      ) : null}
+
+      {withImages.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+          {withImages.map((s, i) => (
+            <ImageCard key={s.id} s={s} featured={i === 0 || s.layout === "wide"} />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

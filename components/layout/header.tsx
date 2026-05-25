@@ -7,25 +7,46 @@ import {
     Menu,
     ArrowUpRight,
     X,
+    ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { SearchModal } from "@/components/ui/search-modal";
 
-const NAV = [
+const NAV_LINKS = [
     { label: "About", href: "/about" },
-    { label: "Membership", href: "/membership" },
-    { label: "Resources", href: "/resources" },
-    { label: "Publications", href: "/publications" },
     { label: "Events", href: "/events" },
     { label: "News", href: "/news" },
     { label: "Contact", href: "/contact" },
 ] as const;
 
+const MEMBERSHIP_DROPDOWN = [
+    { label: "Join & membership", href: "/membership" },
+    { label: "Executives", href: "/executives" },
+] as const;
+
+const RESOURCES_DROPDOWN = [
+    { label: "Resources library", href: "/resources" },
+    { label: "Publications", href: "/publications" },
+] as const;
+
+const MEMBERSHIP_PATHS = ["/membership", "/executives"] as const;
+const RESOURCES_PATHS = ["/resources", "/publications"] as const;
+
+function isPathActive(pathname: string, href: string) {
+    return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isGroupActive(pathname: string, paths: readonly string[]) {
+    return paths.some((p) => isPathActive(pathname, p));
+}
+
 const LIGHT_HEADER_PATHS = [
     "/about",
+    "/executives",
     "/contact",
     "/membership",
     "/membership/account",
@@ -40,7 +61,16 @@ export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [membershipOpen, setMembershipOpen] = useState(false);
+    const [resourcesOpen, setResourcesOpen] = useState(false);
+    const [mobileMembershipOpen, setMobileMembershipOpen] = useState(false);
+    const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
+    const membershipRef = useRef<HTMLDivElement>(null);
+    const resourcesRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
+
+    const isMembershipActive = isGroupActive(pathname, MEMBERSHIP_PATHS);
+    const isResourcesActive = isGroupActive(pathname, RESOURCES_PATHS);
 
     const isLightPage = LIGHT_HEADER_PATHS.some(
         (p) => pathname === p || pathname.startsWith(`${p}/`)
@@ -78,8 +108,29 @@ export function Header() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    function navLinkClass(href: string) {
-        const active = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+    useEffect(() => {
+        setMembershipOpen(false);
+        setResourcesOpen(false);
+        setMobileMembershipOpen(false);
+        setMobileResourcesOpen(false);
+    }, [pathname]);
+
+    useEffect(() => {
+        if (!membershipOpen && !resourcesOpen) return;
+        function handlePointerDown(e: MouseEvent) {
+            const target = e.target as Node;
+            if (membershipOpen && membershipRef.current && !membershipRef.current.contains(target)) {
+                setMembershipOpen(false);
+            }
+            if (resourcesOpen && resourcesRef.current && !resourcesRef.current.contains(target)) {
+                setResourcesOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handlePointerDown);
+        return () => document.removeEventListener("mousedown", handlePointerDown);
+    }, [membershipOpen, resourcesOpen]);
+
+    function navPillClass(active: boolean) {
         if (pillOnHero) {
             return active
                 ? "rounded-full border border-white/55 bg-white/22 px-3 py-2 text-sm font-semibold capitalize text-white shadow-sm backdrop-blur-md xl:px-4"
@@ -90,9 +141,39 @@ export function Header() {
             : "rounded-full border border-gcs-border bg-neutral-50/95 px-3 py-2 text-sm font-medium capitalize text-gcs-foreground shadow-sm transition-all hover:border-gcs-primary/30 hover:bg-white hover:shadow-md xl:px-4";
     }
 
+    function navLinkClass(href: string) {
+        return navPillClass(isPathActive(pathname, href));
+    }
+
     const pillClass = pillOnHero
         ? "border-white/25 bg-white/12 text-white backdrop-blur-md hover:bg-white/20"
         : "border-gcs-border bg-neutral-50/95 text-gcs-foreground shadow-md backdrop-blur-sm hover:border-gcs-primary/25 hover:bg-white";
+
+    function dropdownItemClass(href: string) {
+        const active = isPathActive(pathname, href);
+        return cn(
+            "block rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
+            active
+                ? "bg-gcs-primary/10 text-gcs-primary"
+                : "text-gcs-foreground hover:bg-neutral-50 hover:text-gcs-primary"
+        );
+    }
+
+    function dropdownMenuClass() {
+        return cn(
+            "absolute left-0 top-[calc(100%+0.5rem)] z-50 min-w-[220px] overflow-hidden rounded-2xl border py-1.5 shadow-lg",
+            pillOnHero ? "border-white/20 bg-slate-900/95 text-white backdrop-blur-md" : "border-gcs-border bg-white"
+        );
+    }
+
+    function dropdownLinkClass(href: string) {
+        return cn(
+            dropdownItemClass(href),
+            pillOnHero &&
+                !isPathActive(pathname, href) &&
+                "text-white/90 hover:bg-white/10 hover:text-white"
+        );
+    }
 
     return (
         <>
@@ -137,12 +218,82 @@ export function Header() {
                     </Link>
 
                     <div className="hidden items-center gap-1.5 lg:flex">
-                        {NAV.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={navLinkClass(item.href)}
+                        {NAV_LINKS.slice(0, 1).map((item) => (
+                            <Link key={item.href} href={item.href} className={navLinkClass(item.href)}>
+                                {item.label}
+                            </Link>
+                        ))}
+
+                        <div ref={membershipRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setResourcesOpen(false);
+                                    setMembershipOpen((open) => !open);
+                                }}
+                                aria-expanded={membershipOpen}
+                                aria-haspopup="true"
+                                className={cn(navPillClass(isMembershipActive), "inline-flex items-center gap-1")}
                             >
+                                Membership
+                                <ChevronDown
+                                    className={cn("h-4 w-4 transition-transform", membershipOpen && "rotate-180")}
+                                    aria-hidden
+                                />
+                            </button>
+                            {membershipOpen ? (
+                                <div role="menu" className={dropdownMenuClass()}>
+                                    {MEMBERSHIP_DROPDOWN.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            role="menuitem"
+                                            className={dropdownLinkClass(item.href)}
+                                            onClick={() => setMembershipOpen(false)}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : null}
+                        </div>
+
+                        <div ref={resourcesRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setMembershipOpen(false);
+                                    setResourcesOpen((open) => !open);
+                                }}
+                                aria-expanded={resourcesOpen}
+                                aria-haspopup="true"
+                                className={cn(navPillClass(isResourcesActive), "inline-flex items-center gap-1")}
+                            >
+                                Resources
+                                <ChevronDown
+                                    className={cn("h-4 w-4 transition-transform", resourcesOpen && "rotate-180")}
+                                    aria-hidden
+                                />
+                            </button>
+                            {resourcesOpen ? (
+                                <div role="menu" className={dropdownMenuClass()}>
+                                    {RESOURCES_DROPDOWN.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            role="menuitem"
+                                            className={dropdownLinkClass(item.href)}
+                                            onClick={() => setResourcesOpen(false)}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : null}
+                        </div>
+
+                        {NAV_LINKS.slice(1).map((item) => (
+                            <Link key={item.href} href={item.href} className={navLinkClass(item.href)}>
                                 {item.label}
                             </Link>
                         ))}
@@ -250,7 +401,92 @@ export function Header() {
                         </button>
 
                         <nav className="flex flex-col gap-5 text-2xl font-medium">
-                            {NAV.map((item) => (
+                            {NAV_LINKS.slice(0, 1).map((item) => (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="border-b border-white/10 pb-4"
+                                >
+                                    {item.label}
+                                </Link>
+                            ))}
+
+                            <div className="border-b border-white/10 pb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setMobileMembershipOpen((open) => !open)}
+                                    className="flex w-full items-center justify-between gap-3 text-left"
+                                    aria-expanded={mobileMembershipOpen}
+                                >
+                                    <span className={isMembershipActive ? "text-white" : "text-white/90"}>
+                                        Membership
+                                    </span>
+                                    <ChevronDown
+                                        className={cn(
+                                            "h-6 w-6 shrink-0 text-white/60 transition-transform",
+                                            mobileMembershipOpen && "rotate-180"
+                                        )}
+                                        aria-hidden
+                                    />
+                                </button>
+                                {mobileMembershipOpen ? (
+                                    <div className="mt-4 flex flex-col gap-3 border-l-2 border-white/20 pl-4 text-lg">
+                                        {MEMBERSHIP_DROPDOWN.map((item) => (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                onClick={() => setIsMenuOpen(false)}
+                                                className={
+                                                    isPathActive(pathname, item.href)
+                                                        ? "font-semibold text-white"
+                                                        : "text-white/75 hover:text-white"
+                                                }
+                                            >
+                                                {item.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            <div className="border-b border-white/10 pb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setMobileResourcesOpen((open) => !open)}
+                                    className="flex w-full items-center justify-between gap-3 text-left"
+                                    aria-expanded={mobileResourcesOpen}
+                                >
+                                    <span className={isResourcesActive ? "text-white" : "text-white/90"}>Resources</span>
+                                    <ChevronDown
+                                        className={cn(
+                                            "h-6 w-6 shrink-0 text-white/60 transition-transform",
+                                            mobileResourcesOpen && "rotate-180"
+                                        )}
+                                        aria-hidden
+                                    />
+                                </button>
+                                {mobileResourcesOpen ? (
+                                    <div className="mt-4 flex flex-col gap-3 border-l-2 border-white/20 pl-4 text-lg">
+                                        {RESOURCES_DROPDOWN.map((item) => (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                onClick={() => setIsMenuOpen(false)}
+                                                className={
+                                                    isPathActive(pathname, item.href)
+                                                        ? "font-semibold text-white"
+                                                        : "text-white/75 hover:text-white"
+                                                }
+                                            >
+                                                {item.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            {NAV_LINKS.slice(1).map((item) => (
                                 <Link
                                     key={item.href}
                                     href={item.href}
