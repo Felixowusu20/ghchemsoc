@@ -67,6 +67,7 @@ const navGroups: NavGroup[] = [
       { href: "/cms/homepage-explore", label: "Homepage · mission", icon: House },
       { href: "/cms/hero", label: "Hero", icon: ImageIcon },
       { href: "/cms/about", label: "About", icon: FileText },
+      { href: "/cms/executives", label: "Executives", icon: Users },
       { href: "/cms/join", label: "Join / membership", icon: Users },
       { href: "/cms/partnerships", label: "Partnerships", icon: Handshake },
       { href: "/cms/news", label: "News", icon: Newspaper },

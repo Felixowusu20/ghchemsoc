@@ -163,9 +163,27 @@ html:has([data-member-portal]) body {
 
 .news-article-prose table,
 .gcs-rich-html table {
-  display: block;
+  width: 100%;
   max-width: 100%;
-  overflow-x: auto;
+  margin: 1.25rem 0;
+  border-collapse: collapse;
+}
+
+.news-article-prose th,
+.news-article-prose td,
+.gcs-rich-html th,
+.gcs-rich-html td {
+  border: 1px solid var(--gcs-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.news-article-prose th,
+.gcs-rich-html th {
+  background: color-mix(in srgb, var(--gcs-primary) 8%, white);
+  font-weight: 600;
+  color: var(--gcs-foreground);
 }
 
 .news-article-prose pre,

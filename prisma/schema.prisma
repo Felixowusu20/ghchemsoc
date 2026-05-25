@@ -40,6 +40,7 @@ model Media {
 
   heroSlides HeroSlide[]
   aboutSections AboutSection[]
+  executives Executive[]
   joinSteps JoinStep[]
   joinHeader JoinPageHeader[]
   newsItems NewsItem[]
@@ -344,6 +345,25 @@ model AboutSection {
 
   mediaId  String?
   media    Media? @relation(fields: [mediaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([sortOrder])
+}
+
+model Executive {
+  id        String  @id @default(cuid())
+  sortOrder Int     @default(0)
+  published Boolean @default(true)
+
+  name String
+  role String
+  bio  String? @db.Text
+
+  mediaId String?
+  media   Media? @relation(fields: [mediaId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -32,6 +32,8 @@ import {
 } from "@/lib/site-footer";
 import { aboutSectionsPublicFallback } from "@/lib/about-section-defaults";
 import { fetchPublishedAboutSections } from "@/lib/about-sections";
+import { executivesPublicFallback } from "@/lib/executive-defaults";
+import { fetchPublishedExecutives, mapExecutivePublic } from "@/lib/executives";
 import {
   RESOURCES_PAGE_DEFAULTS,
   RESOURCES_PAGE_ID,
@@ -46,6 +48,14 @@ export async function getPublishedAboutSections() {
     "getPublishedAboutSections",
     () => fetchPublishedAboutSections(),
     aboutSectionsPublicFallback()
+  );
+}
+
+export async function getPublishedExecutives() {
+  return withDbFallback(
+    "getPublishedExecutives",
+    async () => (await fetchPublishedExecutives()).map(mapExecutivePublic),
+    executivesPublicFallback()
   );
 }
 

@@ -17,9 +17,25 @@ const ALLOWED_TAGS = [
   "blockquote",
   "a",
   "img",
+  "table",
+  "thead",
+  "tbody",
+  "tr",
+  "th",
+  "td",
 ];
 
-const ALLOWED_ATTR = ["href", "target", "rel", "src", "alt", "class", "style"];
+const ALLOWED_ATTR = [
+  "href",
+  "target",
+  "rel",
+  "src",
+  "alt",
+  "class",
+  "style",
+  "colspan",
+  "rowspan",
+];
 
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -74,4 +90,11 @@ export function isNewsBodyEmpty(html: string | null | undefined): boolean {
   if (!clean) return true;
   const text = clean.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim();
   return text.length === 0;
+}
+
+/** True when stored body is HTML from the rich text editor (vs legacy plain text). */
+export function looksLikeRichHtml(body: string | null | undefined): boolean {
+  const raw = body?.trim() ?? "";
+  if (!raw) return false;
+  return /<[a-z][\s\S]*>/i.test(raw);
 }

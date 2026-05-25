@@ -8,6 +8,7 @@ import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
+import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
 import {
   AlignCenter,
   AlignLeft,
@@ -22,6 +23,8 @@ import {
   Quote,
   Redo2,
   Strikethrough,
+  Table2,
+  Trash2,
   Underline as UnderlineIcon,
   Undo2,
 } from "lucide-react";
@@ -35,6 +38,9 @@ type Props = {
   placeholder?: string;
   disabled?: boolean;
   minHeight?: string;
+  /** Cloudinary folder for inline image uploads */
+  imageFolder?: string;
+  enableTables?: boolean;
 };
 
 function ToolbarButton({
@@ -71,9 +77,11 @@ export function CmsRichTextEditor({
   value,
   onChange,
   label = "Article body",
-  placeholder = "Write the full article. Use the toolbar for headings, lists, links, and inline images.",
+  placeholder = "Write the full article. Use the toolbar for headings, lists, links, tables, and inline images.",
   disabled,
   minHeight = "280px",
+  imageFolder = "news/body",
+  enableTables = true,
 }: Props) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -88,6 +96,14 @@ export function CmsRichTextEditor({
       Image.configure({ HTMLAttributes: { class: "rounded-xl max-w-full h-auto my-4" } }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder }),
+      ...(enableTables
+        ? [
+            Table.configure({ resizable: false }),
+            TableRow,
+            TableHeader,
+            TableCell,
+          ]
+        : []),
     ],
     content: value || "",
     editable: !disabled,
@@ -115,7 +131,7 @@ export function CmsRichTextEditor({
       setUploading(true);
       const fd = new FormData();
       fd.set("file", file);
-      fd.set("folder", "news/body");
+      fd.set("folder", imageFolder);
       try {
         const res = await fetch("/api/cms/upload", { method: "POST", body: fd, ...cmsCredentials });
         const body = (await res.json().catch(() => null)) as { url?: string } | null;
@@ -126,7 +142,7 @@ export function CmsRichTextEditor({
         setUploading(false);
       }
     },
-    [editor]
+    [editor, imageFolder]
   );
 
   if (!editor) {
@@ -272,6 +288,26 @@ export function CmsRichTextEditor({
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
           </ToolbarButton>
+          {enableTables ? (
+            <>
+              <span className="mx-1 h-5 w-px bg-slate-200" aria-hidden />
+              <ToolbarButton
+                title="Insert table"
+                disabled={disabled}
+                active={editor.isActive("table")}
+                onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+              >
+                <Table2 className="h-4 w-4" />
+              </ToolbarButton>
+              <ToolbarButton
+                title="Delete table"
+                disabled={disabled || !editor.can().deleteTable()}
+                onClick={() => editor.chain().focus().deleteTable().run()}
+              >
+                <Trash2 className="h-4 w-4" />
+              </ToolbarButton>
+            </>
+          ) : null}
           <input
             ref={fileRef}
             type="file"
@@ -296,7 +332,7 @@ export function CmsRichTextEditor({
         </div>
       </div>
       <p className="text-xs text-gcs-muted-text">
-        Format text, add lists, links, and images. Images are uploaded when you insert them in the editor.
+        Format text, add lists, links, tables, and images. Images upload when you insert them in the editor.
       </p>
     </div>
   );

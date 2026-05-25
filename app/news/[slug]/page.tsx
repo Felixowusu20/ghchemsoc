@@ -87,7 +87,7 @@ export default async function NewsArticlePage({ params }: Props) {
                 </div>
               ) : null}
 
-              {post.body ? <NewsArticleHtml html={post.body} /> : null}
+              {post.body ? <NewsArticleHtml html={post.body} className="mt-10" /> : null}
             </article>
 
             <aside className="lg:col-span-4 lg:border-l lg:border-gcs-border/50 lg:pl-10">

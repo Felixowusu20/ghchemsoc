@@ -14,15 +14,17 @@ function inferVariant(imageUrl: string): "logo" | "photo" {
 
 export function mapPublicHeroToCarousel(slides: PublicHeroSlide[]): HeroCarouselSlide[] {
   return slides.map((s) => {
-    const [a, b] = s.headline;
-    const title = [a, b].filter(Boolean).join(" ").trim() || s.eyebrow;
+    const title = s.headline[0]?.trim() || s.eyebrow;
     return {
       id: s.id,
+      eyebrow: s.eyebrow,
       title,
       description: s.description,
       variant: inferVariant(s.imageUrl),
       imageSrc: s.imageUrl,
       imageAlt: s.imageAlt,
+      ctaLabel: s.cta.label,
+      ctaHref: s.cta.href,
     };
   });
 }

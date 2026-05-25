@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { getPublishedSocietyEventById, getPublishedSocietyEvents } from "@/lib/cms-queries";
 import { formatEventDates } from "@/lib/event-format";
+import { EventAboutBody } from "@/components/events/event-about-body";
 import { EventRegisterCta } from "@/components/events/event-register-cta";
 import {
   ArrowLeft,
@@ -16,6 +17,10 @@ import {
 } from "lucide-react";
 
 type PageProps = { params: Promise<{ id: string }> };
+
+/** Event detail hero — full image visible (no crop). Fits main column beside 340px sidebar. */
+const EVENT_DETAIL_IMAGE_WIDTH_PX = 820;
+const EVENT_DETAIL_IMAGE_HEIGHT_PX = 520;
 
 function proseParagraphs(body: string | null, excerpt: string) {
   const raw = body?.trim() ? body.trim() : excerpt;
@@ -42,8 +47,6 @@ export default async function EventDetailPage(props: PageProps) {
 
   const all = await getPublishedSocietyEvents();
   const related = all.filter((e) => e.id !== event.id).slice(0, 3);
-  const paragraphs = proseParagraphs(event.body, event.excerpt);
-
   return (
     <>
       <Header />
@@ -102,18 +105,21 @@ export default async function EventDetailPage(props: PageProps) {
           <div className="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-[1fr_340px] lg:items-start lg:gap-12">
             <div className="min-w-0 space-y-8" data-aos="fade-up" data-aos-delay="80" data-aos-duration="700">
               <div className="overflow-hidden rounded-[1.5rem] border border-gcs-border/60 bg-gcs-surface shadow-sm ring-1 ring-gcs-border/20">
-                <div className="relative aspect-[16/9] w-full bg-neutral-50">
+                <div
+                  className="relative mx-auto h-[360px] w-full max-w-[820px] bg-neutral-50 sm:h-[440px] lg:h-[520px]"
+                  style={{ maxWidth: EVENT_DETAIL_IMAGE_WIDTH_PX }}
+                >
                   {event.media?.url ? (
                     <Image
                       src={event.media.url}
                       alt={event.media.alt ?? event.title}
                       fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 860px"
+                      className="object-contain object-center"
+                      sizes={`(max-width: 640px) 100vw, (max-width: 1024px) 100vw, ${EVENT_DETAIL_IMAGE_WIDTH_PX}px`}
                       priority
                     />
                   ) : (
-                    <div className="flex h-full min-h-[200px] items-center justify-center text-sm text-gcs-muted-text">
+                    <div className="flex h-full w-full items-center justify-center text-sm text-gcs-muted-text">
                       No image
                     </div>
                   )}
@@ -122,13 +128,7 @@ export default async function EventDetailPage(props: PageProps) {
 
               <div className="rounded-[1.35rem] border border-gcs-border/50 bg-gcs-surface/90 px-6 py-8 shadow-sm ring-1 ring-gcs-border/15 md:px-9 md:py-10">
                 <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-muted-text">About this event</h2>
-                <div className="mt-6 space-y-5">
-                  {paragraphs.map((block, i) => (
-                    <p key={i} className="text-[1.02rem] leading-relaxed text-gcs-muted-text">
-                      {block}
-                    </p>
-                  ))}
-                </div>
+                <EventAboutBody body={event.body} excerpt={event.excerpt} />
               </div>
             </div>
 

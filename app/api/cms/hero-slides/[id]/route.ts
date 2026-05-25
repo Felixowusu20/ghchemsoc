@@ -12,7 +12,7 @@ const patchSchema = z
     imageUrl: z.string().url().optional(),
     imageAlt: z.string().optional(),
     eyebrow: z.string().optional(),
-    headlineLine1: z.string().optional(),
+    headlineLine1: z.string().min(1).optional(),
     headlineLine2: z.string().optional(),
     description: z.string().optional(),
     tags: z.array(z.string()).optional(),

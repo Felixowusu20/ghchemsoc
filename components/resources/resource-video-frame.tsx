@@ -3,7 +3,7 @@ import { isHostedVideoFile, parseVideoEmbed } from "@/lib/society-resources";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  url: string | null | undefined;
+  url: string | null | undefined; 
   title: string;
   className?: string;
   /** Cloudinary public_id — enables poster thumbnail for uploaded videos */

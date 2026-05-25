@@ -3,6 +3,7 @@ import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { registrationFormFieldsSchema } from "@/lib/event-registration-form";
+import { isNewsBodyEmpty, sanitizeNewsHtml } from "@/lib/news-content";
 import { Prisma } from "@prisma/client";
 import type { SocietyEvent, Media } from "@prisma/client";
 
@@ -85,7 +86,10 @@ export async function POST(request: NextRequest) {
       data: {
         title: d.title,
         excerpt: d.excerpt,
-        body: d.body ?? null,
+        body:
+          d.body != null && !isNewsBodyEmpty(d.body)
+            ? sanitizeNewsHtml(d.body)
+            : null,
         startDate: d.startDate,
         endDate: d.endDate ?? null,
         timeLabel: d.timeLabel,

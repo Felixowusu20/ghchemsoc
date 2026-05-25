@@ -18,16 +18,9 @@ type Slide = {
   imageAlt: string;
   eyebrow: string;
   headlineLine1: string;
-  headlineLine2: string;
   description: string;
-  tagsJson: string;
-  highlightsJson: string;
   ctaLabel: string;
   ctaHref: string;
-  secondaryLabel: string | null;
-  secondaryHref: string | null;
-  statValue: string | null;
-  statLabel: string | null;
 };
 
 const emptyForm = {
@@ -36,16 +29,9 @@ const emptyForm = {
   imageAlt: "",
   eyebrow: "",
   headlineLine1: "",
-  headlineLine2: "",
   description: "",
-  tags: "",
-  highlights: "",
   ctaLabel: "",
   ctaHref: "",
-  secondaryLabel: "",
-  secondaryHref: "",
-  statValue: "",
-  statLabel: "",
   sortOrder: 0,
   published: true,
 };
@@ -57,32 +43,16 @@ export function HeroCmsClient() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  function slideToForm(s: Slide) {
-    let tags = "";
-    let highlights = "";
-    try {
-      tags = (JSON.parse(s.tagsJson) as string[]).join(", ");
-      highlights = (JSON.parse(s.highlightsJson) as string[]).join("\n");
-    } catch {
-      tags = "";
-      highlights = "";
-    }
+  function slideToForm(s: Slide & { headlineLine2?: string }) {
     return {
       imageUrl: s.imageUrl,
       imagePublicId: s.imagePublicId,
       imageAlt: s.imageAlt,
       eyebrow: s.eyebrow,
       headlineLine1: s.headlineLine1,
-      headlineLine2: s.headlineLine2,
       description: s.description,
-      tags,
-      highlights,
       ctaLabel: s.ctaLabel,
       ctaHref: s.ctaHref,
-      secondaryLabel: s.secondaryLabel ?? "",
-      secondaryHref: s.secondaryHref ?? "",
-      statValue: s.statValue ?? "",
-      statLabel: s.statLabel ?? "",
       sortOrder: s.sortOrder,
       published: s.published,
     };
@@ -97,7 +67,22 @@ export function HeroCmsClient() {
       setLoading(false);
       return;
     }
-    setSlides((await res.json()) as Slide[]);
+    const raw = (await res.json()) as (Slide & { headlineLine2?: string })[];
+    setSlides(
+      raw.map((s) => ({
+        id: s.id,
+        sortOrder: s.sortOrder,
+        published: s.published,
+        imagePublicId: s.imagePublicId,
+        imageUrl: s.imageUrl,
+        imageAlt: s.imageAlt,
+        eyebrow: s.eyebrow,
+        headlineLine1: s.headlineLine1,
+        description: s.description,
+        ctaLabel: s.ctaLabel,
+        ctaHref: s.ctaHref,
+      }))
+    );
     setLoading(false);
   }, []);
 
@@ -123,30 +108,22 @@ export function HeroCmsClient() {
       setErr("Please upload a slide image (drag & drop or file picker).");
       return;
     }
-    const tags = form.tags
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const highlights = form.highlights
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
     const payload = {
       imageUrl: form.imageUrl,
       imagePublicId: form.imagePublicId || null,
       imageAlt: form.imageAlt,
       eyebrow: form.eyebrow,
       headlineLine1: form.headlineLine1,
-      headlineLine2: form.headlineLine2,
+      headlineLine2: "",
       description: form.description,
-      tags,
-      highlights,
+      tags: [] as string[],
+      highlights: [] as string[],
       ctaLabel: form.ctaLabel,
       ctaHref: form.ctaHref,
-      secondaryLabel: form.secondaryLabel || null,
-      secondaryHref: form.secondaryHref || null,
-      statValue: form.statValue || null,
-      statLabel: form.statLabel || null,
+      secondaryLabel: null,
+      secondaryHref: null,
+      statValue: null,
+      statLabel: null,
       sortOrder: form.sortOrder,
       published: form.published,
     };
@@ -190,7 +167,8 @@ export function HeroCmsClient() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Homepage</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Hero carousel</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Upload slide images here (pasted image links are not used). Each published slide appears on the public homepage.
+          Each slide needs an image, eyebrow, headline, description, and one button. Only these fields appear on the
+          homepage carousel.
         </p>
       </div>
 
@@ -198,7 +176,7 @@ export function HeroCmsClient() {
 
       <CmsCard className="p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <CmsSectionTitle description="Upload cover art, then add copy and CTAs.">
+          <CmsSectionTitle description="Upload cover art and the copy that visitors actually see.">
             {editingId ? "Edit slide" : "New slide"}
           </CmsSectionTitle>
           {editingId ? (
@@ -216,7 +194,7 @@ export function HeroCmsClient() {
               previewUrl={form.imageUrl || null}
               onChange={(url, publicId) => setForm((f) => ({ ...f, imageUrl: url, imagePublicId: publicId }))}
               onClear={() => setForm((f) => ({ ...f, imageUrl: "", imagePublicId: null }))}
-              helperText="PNG or JPG recommended · at least 1600px wide for best quality"
+              helperText="PNG or JPG · at least 1600px wide"
             />
           </div>
           <label>
@@ -224,52 +202,33 @@ export function HeroCmsClient() {
             <CmsInput required value={form.imageAlt} onChange={(e) => setForm((f) => ({ ...f, imageAlt: e.target.value }))} />
           </label>
           <label>
-            <CmsFieldLabel>Eyebrow</CmsFieldLabel>
+            <CmsFieldLabel>Eyebrow (small label above headline)</CmsFieldLabel>
             <CmsInput required value={form.eyebrow} onChange={(e) => setForm((f) => ({ ...f, eyebrow: e.target.value }))} />
           </label>
-          <label>
-            <CmsFieldLabel>Headline line 1</CmsFieldLabel>
-            <CmsInput required value={form.headlineLine1} onChange={(e) => setForm((f) => ({ ...f, headlineLine1: e.target.value }))} />
-          </label>
-          <label>
-            <CmsFieldLabel>Headline line 2</CmsFieldLabel>
-            <CmsInput required value={form.headlineLine2} onChange={(e) => setForm((f) => ({ ...f, headlineLine2: e.target.value }))} />
+          <label className="md:col-span-2">
+            <CmsFieldLabel>Headline</CmsFieldLabel>
+            <CmsInput
+              required
+              value={form.headlineLine1}
+              onChange={(e) => setForm((f) => ({ ...f, headlineLine1: e.target.value }))}
+            />
           </label>
           <label className="md:col-span-2">
             <CmsFieldLabel>Description</CmsFieldLabel>
-            <CmsTextarea required rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
-          </label>
-          <label className="md:col-span-2">
-            <CmsFieldLabel>Tags (comma-separated)</CmsFieldLabel>
-            <CmsInput value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} />
-          </label>
-          <label className="md:col-span-2">
-            <CmsFieldLabel>Highlights (one per line)</CmsFieldLabel>
-            <CmsTextarea rows={3} value={form.highlights} onChange={(e) => setForm((f) => ({ ...f, highlights: e.target.value }))} />
+            <CmsTextarea
+              required
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            />
           </label>
           <label>
-            <CmsFieldLabel>Primary CTA label</CmsFieldLabel>
+            <CmsFieldLabel>Button label</CmsFieldLabel>
             <CmsInput required value={form.ctaLabel} onChange={(e) => setForm((f) => ({ ...f, ctaLabel: e.target.value }))} />
           </label>
           <label>
-            <CmsFieldLabel>Primary CTA link</CmsFieldLabel>
+            <CmsFieldLabel>Button link</CmsFieldLabel>
             <CmsInput required value={form.ctaHref} onChange={(e) => setForm((f) => ({ ...f, ctaHref: e.target.value }))} />
-          </label>
-          <label>
-            <CmsFieldLabel>Secondary CTA label</CmsFieldLabel>
-            <CmsInput value={form.secondaryLabel} onChange={(e) => setForm((f) => ({ ...f, secondaryLabel: e.target.value }))} />
-          </label>
-          <label>
-            <CmsFieldLabel>Secondary CTA link</CmsFieldLabel>
-            <CmsInput value={form.secondaryHref} onChange={(e) => setForm((f) => ({ ...f, secondaryHref: e.target.value }))} />
-          </label>
-          <label>
-            <CmsFieldLabel>Stat value</CmsFieldLabel>
-            <CmsInput value={form.statValue} onChange={(e) => setForm((f) => ({ ...f, statValue: e.target.value }))} />
-          </label>
-          <label>
-            <CmsFieldLabel>Stat label</CmsFieldLabel>
-            <CmsInput value={form.statLabel} onChange={(e) => setForm((f) => ({ ...f, statLabel: e.target.value }))} />
           </label>
           <label>
             <CmsFieldLabel>Sort order</CmsFieldLabel>
@@ -288,7 +247,7 @@ export function HeroCmsClient() {
       </CmsCard>
 
       <div>
-        <CmsSectionTitle description="Use sort order to control slide sequence. Deleting a slide removes it from the homepage.">
+        <CmsSectionTitle description="Lower numbers appear first in the carousel.">
           Published slides
         </CmsSectionTitle>
         {slides.length === 0 ? <p className="mt-4 text-sm text-slate-500">No slides yet.</p> : null}
@@ -300,13 +259,11 @@ export function HeroCmsClient() {
                   <Image src={s.imageUrl} alt={s.imageAlt} fill className="object-cover" sizes="200px" />
                 </div>
                 <div className="min-w-0 flex-1 text-sm">
-                  <p className="font-semibold text-slate-900">
-                    {s.headlineLine1} — {s.headlineLine2}
-                  </p>
+                  <p className="font-semibold text-slate-900">{s.headlineLine1}</p>
                   <p className="text-slate-600">{s.eyebrow}</p>
                   <p className="mt-1 line-clamp-2 text-slate-500">{s.description}</p>
                   <p className="mt-2 text-xs font-medium uppercase tracking-wide text-slate-400">
-                    Order {s.sortOrder} · {s.published ? "Live" : "Draft"}
+                    Order {s.sortOrder} · {s.published ? "Live" : "Draft"} · {s.ctaLabel}
                   </p>
                 </div>
                 <CmsListActions
@@ -317,10 +274,8 @@ export function HeroCmsClient() {
                     description: (
                       <>
                         The slide{" "}
-                        <span className="font-semibold text-slate-900">
-                          &ldquo;{s.headlineLine1} — {s.headlineLine2}&rdquo;
-                        </span>{" "}
-                        will be removed from the homepage carousel.
+                        <span className="font-semibold text-slate-900">&ldquo;{s.headlineLine1}&rdquo;</span> will be
+                        removed from the homepage carousel.
                       </>
                     ),
                     highlights: (
@@ -331,7 +286,7 @@ export function HeroCmsClient() {
                         </li>
                         <li className="flex items-start gap-2">
                           <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
-                          <span>Tip: uncheck <em>Published</em> instead to hide it without losing the content.</span>
+                          <span>Tip: uncheck <em>Published</em> to hide without deleting.</span>
                         </li>
                       </ul>
                     ),

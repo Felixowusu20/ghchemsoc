@@ -4,6 +4,7 @@ import { assertAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { deleteCloudinaryAsset } from "@/lib/cloudinary-server";
 import { registrationFormFieldsSchema } from "@/lib/event-registration-form";
+import { isNewsBodyEmpty, sanitizeNewsHtml } from "@/lib/news-content";
 import { Prisma } from "@prisma/client";
 import type { SocietyEvent, Media } from "@prisma/client";
 
@@ -107,7 +108,9 @@ export async function PATCH(request: NextRequest, ctx: { params: Promise<{ id: s
       data: {
         ...(d.title !== undefined ? { title: d.title } : {}),
         ...(d.excerpt !== undefined ? { excerpt: d.excerpt } : {}),
-        ...(d.body !== undefined ? { body: d.body } : {}),
+        ...(d.body !== undefined
+          ? { body: d.body != null && !isNewsBodyEmpty(d.body) ? sanitizeNewsHtml(d.body) : null }
+          : {}),
         ...(d.startDate !== undefined ? { startDate: d.startDate } : {}),
         ...(d.endDate !== undefined ? { endDate: d.endDate } : {}),
         ...(d.timeLabel !== undefined ? { timeLabel: d.timeLabel } : {}),
