@@ -47,9 +47,12 @@ export const FALLBACK_HERO_SLIDES: HeroCarouselSlide[] = [
     imageSrc:
       "https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&w=2000&q=80",
     imageAlt: "Scientific glassware and chemistry laboratory setup",
+    ctaLabel: "Become a member",
+    ctaHref: "/membership",
   },
   {
     id: "community",
+    eyebrow: "Ghana Chemical Society",
     title: "Join our community of researchers",
     description:
       "Collaborate across universities, industry, and public institutions to strengthen chemistry for society.",
