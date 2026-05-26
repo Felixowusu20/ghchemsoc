@@ -23,6 +23,8 @@ const ALLOWED_TAGS = [
   "tr",
   "th",
   "td",
+  "colgroup",
+  "col",
 ];
 
 const ALLOWED_ATTR = [
@@ -35,6 +37,9 @@ const ALLOWED_ATTR = [
   "style",
   "colspan",
   "rowspan",
+  "colwidth",
+  "width",
+  "data-row-height",
 ];
 
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

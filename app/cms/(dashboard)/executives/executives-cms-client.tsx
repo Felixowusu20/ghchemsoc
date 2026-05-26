@@ -8,6 +8,7 @@ import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsSectionTitle } from "@/components/cms/cms-section-title";
 import { handleCmsResponse } from "@/lib/cms-toast";
+import { EXECUTIVE_PORTRAIT } from "@/lib/executive-image";
 
 type Row = {
   id: string;
@@ -125,15 +126,21 @@ export function ExecutivesCmsClient() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">Public site</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Executives</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Officers and leadership shown on the Executives page. Recommended portrait: 560×720px (full image visible on
-          the site).
+          Officers and leadership on the public directory and individual profile pages.{" "}
+          <span className="font-medium text-slate-800">
+            Best photo size: {EXECUTIVE_PORTRAIT.recommendedWidth} × {EXECUTIVE_PORTRAIT.recommendedHeight} px (
+            {EXECUTIVE_PORTRAIT.aspectRatio} portrait).
+          </span>{" "}
+          {EXECUTIVE_PORTRAIT.cmsGuidance}
         </p>
       </div>
       {err ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{err}</p> : null}
 
       <CmsCard className="p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <CmsSectionTitle description="Portrait photo — upload square or portrait; nothing is cropped on the public page.">
+          <CmsSectionTitle
+            description={`Portrait for list cards and profile pages. ${EXECUTIVE_PORTRAIT.recommendedWidth}×${EXECUTIVE_PORTRAIT.recommendedHeight}px (${EXECUTIVE_PORTRAIT.aspectRatio}) recommended.`}
+          >
             {editingId ? "Edit executive" : "Add executive"}
           </CmsSectionTitle>
           {editingId ? (
@@ -145,8 +152,9 @@ export function ExecutivesCmsClient() {
         <form className="mt-8 grid gap-5 md:grid-cols-2" onSubmit={save}>
           <div className="md:col-span-2">
             <CmsImageUpload
-              label="Portrait (recommended)"
+              label={`Portrait (${EXECUTIVE_PORTRAIT.recommendedWidth}×${EXECUTIVE_PORTRAIT.recommendedHeight}px)`}
               folder="executives"
+              helperText={EXECUTIVE_PORTRAIT.cmsGuidance}
               previewUrl={form.imageUrl || null}
               onChange={(url, publicId) => setForm((f) => ({ ...f, imageUrl: url, imagePublicId: publicId }))}
               onClear={() => setForm((f) => ({ ...f, imageUrl: "", imagePublicId: null }))}
@@ -165,8 +173,13 @@ export function ExecutivesCmsClient() {
             <CmsInput required value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} />
           </label>
           <label className="md:col-span-2">
-            <CmsFieldLabel>Bio (optional)</CmsFieldLabel>
-            <CmsTextarea rows={4} value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} />
+            <CmsFieldLabel>Bio (shown on profile page)</CmsFieldLabel>
+            <CmsTextarea
+              rows={6}
+              placeholder="Background, expertise, and responsibilities. A short paragraph or two reads well on the profile page."
+              value={form.bio}
+              onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+            />
           </label>
           <label>
             <CmsFieldLabel>Sort order</CmsFieldLabel>
