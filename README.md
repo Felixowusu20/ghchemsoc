@@ -253,12 +253,27 @@ Integrated Cloudinary uploads for:
 
 # Deployment Notes
 
-Run after merge:
+Use a **direct** Postgres URL for migrations (not the pooler). On Neon, copy the connection string **without** `-pooler` into `DIRECT_URL`. Keep the pooler URL in `DATABASE_URL` for the app.
 
 ```bash
+export DIRECT_URL="postgresql://..."   # direct / non-pooler
+export DATABASE_URL="postgresql://..." # pooler is fine for the app
 npx prisma migrate deploy
 npx prisma generate
 ```
+
+### Failed migration (P3009) + lock timeout (P1002)
+
+1. Cancel any in-progress Vercel deploys (only one `migrate deploy` at a time).
+2. Clear the failed migration (example — use your failed migration name from the error):
+
+```bash
+npx prisma migrate resolve --rolled-back 20260519100000_member_announcement_resources
+```
+
+3. Deploy again with `DIRECT_URL` set in Vercel env vars.
+
+If `migrate status` still times out on `pg_advisory_lock`, something else holds the lock — wait 1–2 minutes and retry, or terminate the idle session in your DB dashboard.
 
 If trademark columns were added manually:
 
@@ -272,6 +287,7 @@ npx prisma db execute --file prisma/migrations/20260517180000_add_footer_tradema
 
 ```env
 DATABASE_URL=
+DIRECT_URL=
 JWT_SECRET=
 
 CLOUDINARY_CLOUD_NAME=

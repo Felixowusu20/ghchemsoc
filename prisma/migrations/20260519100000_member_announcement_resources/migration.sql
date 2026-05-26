@@ -1,5 +1,4 @@
--- Add members-only resource attachments to MemberAnnouncement.
--- Idempotent: re-runnable without errors on environments where the column already exists.
+-- No-op: this migration originally ran before MemberAnnouncement existed (20260520120000).
+-- Column add moved to 20260526170000_member_announcement_resource_links.
 
-ALTER TABLE "MemberAnnouncement"
-    ADD COLUMN IF NOT EXISTS "resourceLinks" TEXT;
+SELECT 1;
