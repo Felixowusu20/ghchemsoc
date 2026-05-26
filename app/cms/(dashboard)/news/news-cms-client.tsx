@@ -7,7 +7,7 @@ import { CmsButton, CmsCard, CmsFieldLabel, CmsInput } from "@/components/cms/cm
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsPageHero, CmsSectionHeading } from "@/components/cms/cms-page-chrome";
-import { CmsRichTextEditor } from "@/components/cms/cms-rich-text-editor";
+import { CmsRichTextEditor } from "@/components/cms/cms-rich-text-editor-lazy";
 import { CMS_ARTICLE_BODY_EDITOR } from "@/lib/cms-rich-text-editor-config";
 import { handleCmsResponse } from "@/lib/cms-toast";
 

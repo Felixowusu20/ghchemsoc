@@ -15,12 +15,16 @@ export function formatZodError(error: ZodError): string {
 
 export function prismaCmsErrorMessage(err: unknown, context = "save"): string {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if (err.code === "P2021") {
-      return "The site database is not fully set up yet. Ask your site administrator to complete setup.";
+    if (err.code === "P2021" || err.code === "P2022") {
+      return "The site database is missing a recent update. Run: npx prisma migrate deploy";
     }
     if (err.code === "P1001" || err.code === "P1002" || err.code === "P1017") {
       return "Could not reach the database. Wait a moment and try again.";
     }
+  }
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/does not exist in the current database|column .* does not exist/i.test(msg)) {
+    return "The site database is missing a recent update. Run: npx prisma migrate deploy";
   }
   if (process.env.NODE_ENV === "development") {
     const msg = err instanceof Error ? err.message : String(err);
