@@ -3,10 +3,13 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExploreHeadline } from "@/components/home/explore-headline";
+import { MissionCopy, splitMissionParagraphs } from "@/components/home/mission-copy";
 import { getHomepageExploreForPublic } from "@/lib/cms-queries";
 
 export async function ExploreSection() {
   const s = await getHomepageExploreForPublic();
+  const aboutParagraphs = splitMissionParagraphs(s.aboutBody);
+  const bottomParagraphs = splitMissionParagraphs(s.bottomBlurb);
 
   return (
     <section
@@ -22,10 +25,10 @@ export async function ExploreSection() {
 
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
         <div className="flex flex-col justify-start pt-1 lg:col-span-3" data-aos="fade-up" data-aos-delay="100">
-          <div className="mb-6 inline-block self-start rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
+          <div className="mb-5 inline-block self-start rounded-full border border-gcs-border bg-white px-4 py-1.5 text-sm font-medium text-gcs-muted-text shadow-sm">
             {s.aboutEyebrow}
           </div>
-          <p className="mb-8 text-lg font-medium leading-relaxed text-gcs-foreground sm:text-xl md:text-2xl">{s.aboutBody}</p>
+          <MissionCopy paragraphs={aboutParagraphs} className="mb-8 max-w-md" />
           <Button
             asChild
             className="group mt-auto h-12 w-fit gap-3 rounded-full border-0 bg-gcs-primary px-6 text-base text-white shadow-sm hover:bg-gcs-primary-hover"
@@ -94,7 +97,7 @@ export async function ExploreSection() {
           </div>
 
           <div className="mt-auto flex flex-col gap-5">
-            <p className="max-w-md text-sm leading-relaxed text-gcs-muted-text md:text-base">{s.bottomBlurb}</p>
+            <MissionCopy paragraphs={bottomParagraphs} className="max-w-md" />
             <div className="flex flex-wrap items-center justify-end gap-x-6 gap-y-2 border-t border-gcs-border/80 pt-5">
               <Link
                 href="/publications"

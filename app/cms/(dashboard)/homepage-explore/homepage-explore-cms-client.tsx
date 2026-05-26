@@ -128,8 +128,13 @@ export function HomepageExploreCmsClient() {
               <CmsInput value={form.aboutEyebrow} onChange={(e) => setForm({ ...form, aboutEyebrow: e.target.value })} />
             </label>
             <label>
-              <CmsFieldLabel>Body paragraph</CmsFieldLabel>
-              <CmsTextarea rows={4} value={form.aboutBody} onChange={(e) => setForm({ ...form, aboutBody: e.target.value })} />
+              <CmsFieldLabel>Mission text (left column)</CmsFieldLabel>
+              <CmsTextarea
+                rows={5}
+                placeholder="One paragraph per block. Leave a blank line between paragraphs."
+                value={form.aboutBody}
+                onChange={(e) => setForm({ ...form, aboutBody: e.target.value })}
+              />
             </label>
           </div>
         </CmsCard>
@@ -182,8 +187,13 @@ export function HomepageExploreCmsClient() {
               <CmsInput value={form.secondaryBadge} onChange={(e) => setForm({ ...form, secondaryBadge: e.target.value })} />
             </label>
             <label>
-              <CmsFieldLabel>Bottom paragraph</CmsFieldLabel>
-              <CmsTextarea rows={4} value={form.bottomBlurb} onChange={(e) => setForm({ ...form, bottomBlurb: e.target.value })} />
+              <CmsFieldLabel>Mission text (right column, below image)</CmsFieldLabel>
+              <CmsTextarea
+                rows={5}
+                placeholder="One paragraph per block. Leave a blank line between paragraphs."
+                value={form.bottomBlurb}
+                onChange={(e) => setForm({ ...form, bottomBlurb: e.target.value })}
+              />
             </label>
           </div>
         </CmsCard>
