@@ -1,14 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
-import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
+import { Table, TableRow } from "@tiptap/extension-table";
+import { TableInsertPopover, type TableInsertOptions } from "@/components/cms/table-insert-popover";
+import {
+  CmsTableCell,
+  CmsTableHeader,
+  TableEditorEnhancements,
+  TableRowResizing,
+} from "@/lib/tiptap-table-enhancements";
 import {
   AlignCenter,
   AlignLeft,
@@ -23,6 +30,8 @@ import {
   Quote,
   Redo2,
   Strikethrough,
+  Columns3,
+  Rows3,
   Table2,
   Trash2,
   Underline as UnderlineIcon,
@@ -42,6 +51,110 @@ type Props = {
   imageFolder?: string;
   enableTables?: boolean;
 };
+
+/** Persists width/style on inserted tables for public article HTML. */
+const CmsTable = Table.extend({
+  addAttributes() {
+    return {
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style };
+        },
+      },
+    };
+  },
+});
+
+function insertTableWithOptions(editor: Editor, options: TableInsertOptions) {
+  const { rows, cols, withHeaderRow, width } = options;
+  const style =
+    width === "100%"
+      ? "width: 100%; max-width: 100%"
+      : `width: ${width}; max-width: 100%`;
+
+  editor.chain().focus().insertTable({ rows, cols, withHeaderRow }).run();
+  editor.chain().focus().updateAttributes("table", { style }).run();
+}
+
+function TableEditToolbar({ editor, disabled }: { editor: Editor; disabled?: boolean }) {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setTick((n) => n + 1);
+    editor.on("selectionUpdate", refresh);
+    editor.on("transaction", refresh);
+    return () => {
+      editor.off("selectionUpdate", refresh);
+      editor.off("transaction", refresh);
+    };
+  }, [editor]);
+
+  if (!editor.isActive("table")) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-200 bg-blue-50/80 px-2 py-1.5">
+      <span className="mr-1 text-xs font-medium text-slate-600">Table:</span>
+      <ToolbarButton
+        title="Add row above"
+        disabled={disabled}
+        onClick={() => editor.chain().focus().addRowBefore().run()}
+      >
+        <Rows3 className="h-4 w-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        title="Add row below"
+        disabled={disabled}
+        onClick={() => editor.chain().focus().addRowAfter().run()}
+      >
+        <span className="text-[10px] font-bold leading-none">R+</span>
+      </ToolbarButton>
+      <ToolbarButton
+        title="Delete row"
+        disabled={disabled || !editor.can().deleteRow()}
+        onClick={() => editor.chain().focus().deleteRow().run()}
+      >
+        <span className="text-[10px] font-bold leading-none">R−</span>
+      </ToolbarButton>
+      <span className="mx-1 h-5 w-px bg-slate-300" aria-hidden />
+      <ToolbarButton
+        title="Add column left"
+        disabled={disabled}
+        onClick={() => editor.chain().focus().addColumnBefore().run()}
+      >
+        <Columns3 className="h-4 w-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        title="Add column right"
+        disabled={disabled}
+        onClick={() => editor.chain().focus().addColumnAfter().run()}
+      >
+        <span className="text-[10px] font-bold leading-none">C+</span>
+      </ToolbarButton>
+      <ToolbarButton
+        title="Delete column"
+        disabled={disabled || !editor.can().deleteColumn()}
+        onClick={() => editor.chain().focus().deleteColumn().run()}
+      >
+        <span className="text-[10px] font-bold leading-none">C−</span>
+      </ToolbarButton>
+      <span className="mx-1 h-5 w-px bg-slate-300" aria-hidden />
+      <ToolbarButton
+        title="Toggle header row"
+        disabled={disabled}
+        active={editor.isActive("tableHeader")}
+        onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+      >
+        <span className="text-[10px] font-bold leading-none">Hdr</span>
+      </ToolbarButton>
+      <span className="ml-1 hidden text-xs text-slate-500 sm:inline">
+        Click to edit · drag right edge of any column (incl. last) or bottom edge of any row to resize
+      </span>
+    </div>
+  );
+}
 
 function ToolbarButton({
   onClick,
@@ -84,7 +197,9 @@ export function CmsRichTextEditor({
   enableTables = true,
 }: Props) {
   const [uploading, setUploading] = useState(false);
+  const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const tableButtonRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     extensions: [
@@ -98,10 +213,19 @@ export function CmsRichTextEditor({
       Placeholder.configure({ placeholder }),
       ...(enableTables
         ? [
-            Table.configure({ resizable: false }),
+            CmsTable.configure({
+              resizable: true,
+              lastColumnResizable: true,
+              handleWidth: 14,
+              cellMinWidth: 48,
+              renderWrapper: true,
+              HTMLAttributes: { class: "cms-editor-table" },
+            }),
             TableRow,
-            TableHeader,
-            TableCell,
+            CmsTableHeader,
+            CmsTableCell,
+            TableRowResizing.configure({ handleHeight: 12 }),
+            TableEditorEnhancements,
           ]
         : []),
     ],
@@ -112,7 +236,7 @@ export function CmsRichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none px-4 py-3 focus:outline-none min-h-[inherit] prose-headings:font-semibold prose-p:my-3 prose-ul:my-3 prose-ol:my-3",
+          "tiptap cms-tiptap-surface max-w-none px-4 py-3 text-sm text-gcs-foreground focus:outline-none min-h-[inherit] [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1.5 [&_h3]:text-base [&_h3]:font-semibold [&_p]:my-3 [&_ul]:my-3 [&_ol]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6",
       },
     },
   });
@@ -159,7 +283,7 @@ export function CmsRichTextEditor({
       <p className="text-sm font-medium text-slate-700">{label}</p>
       <div
         className={cn(
-          "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm",
+          "cms-rich-text-editor overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm",
           disabled && "opacity-60"
         )}
       >
@@ -291,14 +415,23 @@ export function CmsRichTextEditor({
           {enableTables ? (
             <>
               <span className="mx-1 h-5 w-px bg-slate-200" aria-hidden />
-              <ToolbarButton
-                title="Insert table"
-                disabled={disabled}
-                active={editor.isActive("table")}
-                onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-              >
-                <Table2 className="h-4 w-4" />
-              </ToolbarButton>
+              <div ref={tableButtonRef} className="relative">
+                <ToolbarButton
+                  title="Insert table"
+                  disabled={disabled}
+                  active={editor.isActive("table") || tablePickerOpen}
+                  onClick={() => setTablePickerOpen((open) => !open)}
+                >
+                  <Table2 className="h-4 w-4" />
+                </ToolbarButton>
+                <TableInsertPopover
+                  open={tablePickerOpen}
+                  disabled={disabled}
+                  anchorRef={tableButtonRef}
+                  onClose={() => setTablePickerOpen(false)}
+                  onInsert={(options) => insertTableWithOptions(editor, options)}
+                />
+              </div>
               <ToolbarButton
                 title="Delete table"
                 disabled={disabled || !editor.can().deleteTable()}
@@ -327,12 +460,13 @@ export function CmsRichTextEditor({
             <Redo2 className="h-4 w-4" />
           </ToolbarButton>
         </div>
-        <div style={{ minHeight }} className="bg-white">
+        <TableEditToolbar editor={editor} disabled={disabled} />
+        <div style={{ minHeight }} className="cms-rich-text-editor-body bg-white">
           <EditorContent editor={editor} />
         </div>
       </div>
       <p className="text-xs text-gcs-muted-text">
-        Format text, add lists, links, tables, and images. Images upload when you insert them in the editor.
+        Format text, add lists, links, tables, and images. In a table: click cells to edit, use the table bar for rows/columns, drag column edges to resize.
       </p>
     </div>
   );

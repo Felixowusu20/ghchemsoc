@@ -7,7 +7,8 @@ import { CmsButton, CmsCard, CmsFieldLabel, CmsInput } from "@/components/cms/cm
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
 import { CmsPageHero, CmsSectionHeading } from "@/components/cms/cms-page-chrome";
-import { CmsRichTextEditor } from "@/components/cms/cms-rich-text-editor";
+import { CmsRichTextEditor } from "@/components/cms/cms-rich-text-editor-lazy";
+import { CMS_ARTICLE_BODY_EDITOR } from "@/lib/cms-rich-text-editor-config";
 import { handleCmsResponse } from "@/lib/cms-toast";
 
 type Row = {
@@ -288,13 +289,16 @@ export function NewsCmsClient() {
           <section className="space-y-5">
             <PhaseBadge n={3} label="Full article" />
             <CmsRichTextEditor
+              {...CMS_ARTICLE_BODY_EDITOR}
               value={form.body}
               onChange={(html) => setForm((f) => ({ ...f, body: html }))}
               label="Story"
-              placeholder="Write the full article. Use bold, italic, headings, lists, quotes, links, and inline images."
+              imageFolder="news/body"
+              placeholder="Write the full article — headings, lists, links, tables, and inline images."
             />
             <p className="text-xs text-slate-500">
-              A short summary for the news listing is created automatically from the first part of your article.
+              A short summary for the news listing is created automatically from the first part of your article. Use the
+              table tool to set rows, columns, and width; drag column or row edges to resize after inserting.
             </p>
           </section>
 

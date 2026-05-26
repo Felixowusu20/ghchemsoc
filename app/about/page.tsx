@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { ContactFooter } from "@/components/home/contact-footer";
 import { AboutExecutivesTeaser } from "@/components/about/about-executives-teaser";
+import { MissionCopy, splitMissionParagraphs } from "@/components/home/mission-copy";
 import { AboutSections } from "@/components/about/about-sections";
 import { getHomepageExploreForPublic, getPublishedAboutSections, getPublishedExecutives } from "@/lib/cms-queries";
 import type { HomepageExplorePublic } from "@/lib/homepage-explore";
@@ -24,18 +25,17 @@ function MissionIntro({ mission }: { mission: HomepageExplorePublic }) {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gcs-primary">
           {mission.missionEyebrow}
         </p>
-        <h2 className="mt-3 max-w-3xl text-2xl font-semibold tracking-tight text-gcs-foreground sm:text-3xl">
-          {mission.headlineLine1}{" "}
-          <span className="text-gcs-primary">{mission.headlineLine2}</span>
+        <h2 className="mt-3 max-w-3xl text-balance text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">
+          <span className="block text-gcs-foreground">{mission.headlineLine1}</span>
+          <span className="mt-1.5 block text-gcs-primary sm:mt-2">{mission.headlineLine2}</span>
         </h2>
-        {mission.aboutBody ? (
-          <p className="gcs-lead mt-5 max-w-3xl text-gcs-muted-text">{mission.aboutBody}</p>
-        ) : null}
-        {mission.bottomBlurb ? (
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-gcs-muted-text sm:text-base">
-            {mission.bottomBlurb}
-          </p>
-        ) : null}
+        <MissionCopy
+          paragraphs={[
+            ...splitMissionParagraphs(mission.aboutBody),
+            ...splitMissionParagraphs(mission.bottomBlurb),
+          ]}
+          className="mt-5 max-w-3xl"
+        />
       </div>
     </div>
   );

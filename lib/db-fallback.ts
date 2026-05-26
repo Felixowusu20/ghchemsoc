@@ -36,8 +36,17 @@ export function isPrismaEngineDisconnected(error: unknown): boolean {
   );
 }
 
+/** Schema out of sync with the deployed app (migration not run yet). */
+export function isPrismaSchemaMismatch(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === "P2021" || error.code === "P2022") return true;
+  }
+  const msg = errorMessage(error);
+  return /does not exist in the current database|column .* does not exist|table .* does not exist/i.test(msg);
+}
+
 function isRecoverablePrismaError(error: unknown): boolean {
-  return isDbConnectionError(error) || isPrismaEngineDisconnected(error);
+  return isDbConnectionError(error) || isPrismaEngineDisconnected(error) || isPrismaSchemaMismatch(error);
 }
 
 /** One connectivity check per request (for layout banners, etc.). */
