@@ -186,6 +186,108 @@ html:has([data-member-portal]) body {
   color: var(--gcs-foreground);
 }
 
+/* CMS TipTap editor — tables (resize handles, selection, visible cells) */
+.cms-rich-text-editor-body .tiptap table,
+.cms-rich-text-editor-body .tiptap table.cms-editor-table {
+  border-collapse: collapse;
+  margin: 0;
+  overflow: visible;
+  table-layout: fixed;
+  width: 100%;
+  max-width: 100%;
+  background: #cbd5e1;
+  box-shadow: 0 0 0 2px #64748b;
+}
+
+.cms-rich-text-editor-body .tiptap th {
+  background-color: #bfdbfe !important;
+  border: 1px solid #64748b !important;
+  color: var(--gcs-foreground);
+  font-weight: 600;
+  text-align: left;
+}
+
+.cms-rich-text-editor-body .tiptap td {
+  background-color: #e2e8f0 !important;
+  border: 1px solid #64748b !important;
+  color: var(--gcs-foreground);
+  text-align: left;
+}
+
+.cms-rich-text-editor-body .tiptap td,
+.cms-rich-text-editor-body .tiptap th {
+  box-sizing: border-box;
+  cursor: text;
+  min-width: 3rem;
+  padding: 0.5rem 0.75rem;
+  position: relative;
+  vertical-align: top;
+}
+
+.cms-rich-text-editor-body .tiptap.in-table-editor td,
+.cms-rich-text-editor-body .tiptap.in-table-editor th {
+  cursor: text;
+}
+
+.cms-rich-text-editor-body .tiptap td > *,
+.cms-rich-text-editor-body .tiptap th > * {
+  margin-bottom: 0;
+}
+
+.cms-rich-text-editor-body .tiptap tr:nth-child(even) td {
+  background-color: #f1f5f9 !important;
+}
+
+.cms-rich-text-editor-body .tiptap .selectedCell::after {
+  background: color-mix(in srgb, var(--gcs-primary) 25%, transparent);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.cms-rich-text-editor-body .tiptap .column-resize-handle {
+  background-color: var(--gcs-primary);
+  bottom: -2px;
+  pointer-events: none;
+  position: absolute;
+  right: -3px;
+  top: 0;
+  width: 6px;
+  z-index: 4;
+}
+
+.cms-rich-text-editor-body .tiptap .row-resize-handle {
+  background-color: var(--gcs-primary);
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 6px;
+  z-index: 4;
+}
+
+.cms-rich-text-editor-body .tiptap.resize-cursor,
+.cms-rich-text-editor-body .tiptap.resize-cursor td,
+.cms-rich-text-editor-body .tiptap.resize-cursor th {
+  cursor: col-resize !important;
+}
+
+.cms-rich-text-editor-body .tiptap.row-resize-cursor,
+.cms-rich-text-editor-body .tiptap.row-resize-cursor td,
+.cms-rich-text-editor-body .tiptap.row-resize-cursor th {
+  cursor: row-resize !important;
+}
+
+.cms-rich-text-editor-body .tiptap .tableWrapper {
+  margin: 1rem 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 4px;
+}
+
 .news-article-prose pre,
 .gcs-rich-html pre {
   max-width: 100%;

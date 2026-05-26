@@ -57,3 +57,21 @@ export function mapExecutivePublic(row: ExecutiveWithMedia) {
     media: row.media ? { url: row.media.url, alt: row.media.alt } : null,
   };
 }
+
+export async function fetchPublishedExecutiveById(id: string): Promise<ExecutiveWithMedia | null> {
+  const row = await prisma.executive.findFirst({
+    where: { id, published: true },
+    include: { media: true },
+  });
+  if (row) return row;
+
+  if ((await prisma.executive.count()) === 0) {
+    await seedExecutivesIfEmpty();
+    return prisma.executive.findFirst({
+      where: { id, published: true },
+      include: { media: true },
+    });
+  }
+
+  return null;
+}
