@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/admin-auth";
+import { prismaCmsErrorMessage } from "@/lib/cms-api-errors";
 import { prisma } from "@/lib/prisma";
 import { registrationFormFieldsSchema } from "@/lib/event-registration-form";
 import { isNewsBodyEmpty, sanitizeNewsHtml } from "@/lib/news-content";
@@ -54,11 +55,16 @@ function serialize(r: Row) {
 export async function GET(request: NextRequest) {
   const denied = await assertAdmin(request);
   if (denied) return denied;
-  const rows = await prisma.societyEvent.findMany({
-    orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { startDate: "asc" }],
-    include: { media: true },
-  });
-  return NextResponse.json(rows.map(serialize));
+  try {
+    const rows = await prisma.societyEvent.findMany({
+      orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { startDate: "asc" }],
+      include: { media: true },
+    });
+    return NextResponse.json(rows.map(serialize));
+  } catch (error) {
+    console.error("[cms/society-events GET]", error);
+    return NextResponse.json({ error: prismaCmsErrorMessage(error, "load events") }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {

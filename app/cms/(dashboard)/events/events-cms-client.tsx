@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { cmsCredentials, CMS_UNAUTHORIZED_MESSAGE } from "@/lib/cms-fetch";
 import { CmsButton, CmsCard, CmsFieldLabel, CmsInput, CmsTextarea } from "@/components/cms/cms-ui";
-import { CmsRichTextEditor } from "@/components/cms/cms-rich-text-editor";
+import { CmsRichTextEditor } from "@/components/cms/cms-rich-text-editor-lazy";
 import { CMS_ARTICLE_BODY_EDITOR } from "@/lib/cms-rich-text-editor-config";
 import { CmsImageUpload } from "@/components/cms/cms-image-upload";
 import { CmsListActions } from "@/components/cms/cms-list-actions";
