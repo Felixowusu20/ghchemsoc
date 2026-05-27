@@ -66,20 +66,21 @@ export async function withDbFallback<T>(label: string, fn: () => Promise<T>, fal
   try {
     return await fn();
   } catch (error) {
-    if (process.env.NODE_ENV !== "production" && isRecoverablePrismaError(error)) {
-      resetPrismaClient();
-      if (await prismaReady()) {
-        try {
-          return await fn();
-        } catch (retryError) {
-          if (isRecoverablePrismaError(retryError)) return fallback;
-          throw retryError;
+    if (isRecoverablePrismaError(error)) {
+      if (process.env.NODE_ENV !== "production") {
+        resetPrismaClient();
+        if (await prismaReady()) {
+          try {
+            return await fn();
+          } catch (retryError) {
+            if (isRecoverablePrismaError(retryError)) return fallback;
+            throw retryError;
+          }
         }
       }
       return fallback;
     }
 
-    if (!isRecoverablePrismaError(error)) throw error;
-    return fallback;
+    throw error;
   }
 }

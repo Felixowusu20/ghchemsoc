@@ -15,7 +15,7 @@ import type { Prisma } from "@prisma/client";
 import type { RegistrationFieldDef } from "@/lib/event-registration-form";
 import { createEmptyRegistrationField } from "@/lib/event-registration-form";
 import { handleCmsResponse } from "@/lib/cms-toast";
-import { isNewsBodyEmpty } from "@/lib/news-content";
+import { isNewsBodyEmpty } from "@/lib/news-body-empty";
 import { HomepageEventsSpotlightCms } from "@/components/cms/homepage-events-spotlight-cms";
 
 type Row = {

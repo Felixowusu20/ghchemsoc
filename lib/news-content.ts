@@ -90,12 +90,7 @@ export function sanitizeNewsHtml(html: string | null | undefined): string {
   });
 }
 
-export function isNewsBodyEmpty(html: string | null | undefined): boolean {
-  const clean = sanitizeNewsHtml(html);
-  if (!clean) return true;
-  const text = clean.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim();
-  return text.length === 0;
-}
+export { isNewsBodyEmpty } from "@/lib/news-body-empty";
 
 /** True when stored body is HTML from the rich text editor (vs legacy plain text). */
 export function looksLikeRichHtml(body: string | null | undefined): boolean {
