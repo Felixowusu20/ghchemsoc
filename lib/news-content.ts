@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 const ALLOWED_TAGS = [
   "p",
@@ -83,10 +83,39 @@ export function excerptFromHtml(html: string | null | undefined, maxLen = 220): 
 
 export function sanitizeNewsHtml(html: string | null | undefined): string {
   if (!html?.trim()) return "";
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOW_DATA_ATTR: false,
+  return sanitizeHtml(html, {
+    allowedTags: ALLOWED_TAGS,
+    allowedAttributes: {
+      a: ["href", "target", "rel", "class", "style"],
+      img: ["src", "alt", "class", "style"],
+      table: ["class", "style", "width"],
+      thead: ["class", "style"],
+      tbody: ["class", "style"],
+      tr: ["class", "style", "data-row-height"],
+      th: ["colspan", "rowspan", "colwidth", "class", "style", "width"],
+      td: ["colspan", "rowspan", "colwidth", "class", "style", "width"],
+      colgroup: ["class", "style"],
+      col: ["class", "style", "width"],
+      p: ["class", "style"],
+      h2: ["class", "style"],
+      h3: ["class", "style"],
+      ul: ["class", "style"],
+      ol: ["class", "style"],
+      li: ["class", "style"],
+      blockquote: ["class", "style"],
+      strong: ["class", "style"],
+      b: ["class", "style"],
+      em: ["class", "style"],
+      i: ["class", "style"],
+      u: ["class", "style"],
+      s: ["class", "style"],
+      br: [],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemesByTag: {
+      img: ["http", "https", "data"],
+    },
+    disallowedTagsMode: "discard",
   });
 }
 
