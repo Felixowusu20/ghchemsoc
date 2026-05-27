@@ -3,7 +3,10 @@
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 
-/** TipTap must not run during SSR — it can crash production renders of /cms/news and /cms/events. */
+/**
+ * TipTap must not run during SSR. CMS news/events pages load via a client shell with
+ * `dynamic({ ssr: false })` (see news-cms-shell.tsx / events-cms-shell.tsx).
+ */
 export const CmsRichTextEditor = dynamic(
   () => import("./cms-rich-text-editor").then((m) => m.CmsRichTextEditor),
   {
