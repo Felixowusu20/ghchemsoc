@@ -1,7 +1,7 @@
-import { EventsCmsClient } from "./events-cms-client";
+import { EventsCmsShell } from "./events-cms-shell";
 
 export const dynamic = "force-dynamic";
 
 export default function CmsEventsPage() {
-  return <EventsCmsClient />;
+  return <EventsCmsShell />;
 }
