@@ -253,7 +253,16 @@ Integrated Cloudinary uploads for:
 
 # Deployment Notes
 
+**Do not run `prisma migrate deploy` during the Vercel build.** It causes P1002 advisory lock timeouts (especially with Neon pooler URLs) and failed deploys.
+
+Vercel uses `npm run vercel-build` → `prisma generate && next build` only (see `vercel.json`).
+
+In the Vercel project → **Settings → Build & Development**, ensure **Build Command** is empty (use `vercel.json`) or exactly `npm run vercel-build` — not a custom command that includes `migrate deploy`.
+
+Apply database changes **once** from your machine after deploy:
+
 ```bash
+export DATABASE_URL="your-production-url"
 npx prisma migrate deploy
 npx prisma generate
 ```
