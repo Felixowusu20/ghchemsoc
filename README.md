@@ -253,18 +253,15 @@ Integrated Cloudinary uploads for:
 
 # Deployment Notes
 
-**Do not run `prisma migrate deploy` during the Vercel build.** It causes P1002 advisory lock timeouts (especially with Neon pooler URLs) and failed deploys.
+**Do not run `prisma migrate deploy` during the Vercel build.** It causes P1002 advisory lock timeouts on Neon.
 
-Vercel uses `npm run vercel-build` → `prisma generate && next build` only (see `vercel.json`).
+Use a normal build on Vercel: **`npm run build`** or **`next build`** (with `prisma generate` handled by `npm run build`).
 
-In the Vercel project → **Settings → Build & Development**, ensure **Build Command** is empty (use `vercel.json`) or exactly `npm run vercel-build` — not a custom command that includes `migrate deploy`.
-
-Apply database changes **once** from your machine after deploy:
+Apply database changes **once** from your machine after deploy. On **Neon**, use the **direct** connection string (not `-pooler`):
 
 ```bash
-export DATABASE_URL="your-production-url"
-npx prisma migrate deploy
-npx prisma generate
+export DATABASE_URL="postgresql://...@ep-xxx.neon.tech/neondb?sslmode=require"
+npm run db:migrate:deploy
 ```
 
 ### Failed migration (P3009) + lock timeout (P1002)
